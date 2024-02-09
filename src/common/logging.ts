@@ -20,6 +20,9 @@ const {combine, printf, timestamp, label, splat, errors} = format;
 const {loggers, transports} = winstonDef;
 
 export let logPath = path.resolve(configDir, `./logs`);
+if (typeof process.env.CONFIG_DIR === 'string') {
+    logPath = path.resolve(process.env.CONFIG_DIR, './logs');
+}
 
 loggers.add('noop', {transports: [new NullTransport()]});
 
