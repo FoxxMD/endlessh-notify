@@ -1,8 +1,9 @@
 import { AbstractWebhookNotifier } from "./AbstractWebhookNotifier.js";
 import {Logger} from '@foxxmd/winston';
-import {BaseMessageOptions, WebhookClient} from "discord.js";
+import {APIEmbed, AttachmentBuilder, BaseMessageOptions, EmbedBuilder, WebhookClient} from "discord.js";
 import {DiscordConfig, WebhookPayload} from "../common/infrastructure/webhooks.js";
 import {ErrorWithCause} from "pony-cause";
+import dayjs from "dayjs";
 
 export class DiscordWebhookNotifier extends AbstractWebhookNotifier {
 
@@ -30,11 +31,31 @@ export class DiscordWebhookNotifier extends AbstractWebhookNotifier {
     }
 
     doNotify = async (payload: WebhookPayload) => {
+        let flag = '';
+        let geoDesc = '';
+        let files: AttachmentBuilder[] = [];
+        if(payload.log.geo !== undefined) {
+            flag = `:flag_${payload.log.geo.countryCode.toLowerCase()}: `;
+            geoDesc = ` from ${payload.log.geo?.city}, ${payload.log.geo?.country} (${payload.log.geo?.isp})`
+        }
         try {
-            await this.client.send({} as unknown as BaseMessageOptions);
+            const embed: APIEmbed = {
+                title: 'New IP Connected',
+                url: `https://db-ip.com/${payload.log.host.address}`,
+                description: `${flag}${payload.log.host.address}${geoDesc} <https://www.shodan.io/host/${payload.log.host.address}>`
+            };
+            if(payload.mapImageData !== undefined) {
+                const name = `mq-${dayjs().unix()}`;
+                const file = new AttachmentBuilder(payload.mapImageData, {name});
+                embed.image = {url: name};
+                files.push(file);
+            }
+            await this.client.send({embeds: [embed], files});
             this.logger.debug(`Pushed notification.`);
+            return true;
         } catch (e: any) {
             this.logger.error(new ErrorWithCause(`Failed to push notification`, {cause: e}));
+            return false;
         }
     }
 }

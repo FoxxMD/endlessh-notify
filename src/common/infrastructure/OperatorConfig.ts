@@ -23,4 +23,5 @@ export interface OperatorJsonConfig {
     logging?: LoggingOptions,
     notifiers: WebhookConfig[]
     endlessDir?: string
+    mapquestKey?: string
 }

@@ -12,6 +12,7 @@ import {
     WebhookPayload
 } from "../common/infrastructure/webhooks.js";
 import {DiscordWebhookNotifier} from "./DiscordWebhookNotifier.js";
+import {LRUCache} from "lru-cache";
 
 export class Notifiers {
 
@@ -21,10 +22,20 @@ export class Notifiers {
 
     emitter: EventEmitter;
 
-    constructor(emitter: EventEmitter = new EventEmitter()) {
-        this.emitter = emitter;
+    mapquestKey?: string;
+    imageCache: LRUCache<string,string> = new LRUCache({max: 100});
 
-        this.logger = winston.loggers.get('app').child({labels: ['Notifiers']}, mergeArr);
+    constructor(logger: Logger, mapquestKey?: string, emitter: EventEmitter = new EventEmitter()) {
+        this.emitter = emitter;
+        this.mapquestKey = mapquestKey;
+
+        this.logger = logger.child({labels: ['Notifiers']}, mergeArr);
+
+        if(this.mapquestKey !== undefined) {
+            this.logger.info('Mapquest Key found. Will generate map images for Discord notifiers.');
+        } else {
+            this.logger.info('No Mapquest Key found. Will NOT generate map images for Discord notifiers.');
+        }
     }
 
     buildWebhooks = async (webhookConfigs: WebhookConfig[]) => {
@@ -55,8 +66,13 @@ export class Notifiers {
     }
 
     notify = async (payload: WebhookPayload) => {
+        let anySent = false;
         for (const webhook of this.webhooks) {
-            await webhook.notify(payload);
+            const res = await webhook.notify(payload);
+            if(res !== undefined) {
+                anySent = true;
+            }
         }
+        return anySent;
     }
 }

@@ -1,7 +1,9 @@
+import {EndlessLog} from "./Atomic.js";
+
 export interface WebhookPayload {
-    title?: string
-    message: string
-    priority: 'info' | 'warn' | 'error'
+    log: EndlessLog
+    priority?: 'info' | 'warn' | 'error'
+    mapImageData?: string
 }
 
 export interface PrioritiesConfig {

@@ -51,9 +51,9 @@ export class NtfyWebhookNotifier extends AbstractWebhookNotifier {
     doNotify = async (payload: WebhookPayload) => {
         try {
             const req: Config = {
-                message: payload.message,
+                message: `IP ${payload.log.host.address} connected`,
                 topic: this.config.topic,
-                title: payload.title,
+                title: 'New IP Connected',
                 server: this.config.url,
                 priority: this.priorities[payload.priority],
             };
@@ -65,8 +65,10 @@ export class NtfyWebhookNotifier extends AbstractWebhookNotifier {
             }
             await publish(req);
             this.logger.debug(`Pushed notification.`);
+            return true;
         } catch (e: any) {
             this.logger.error(`Failed to push notification: ${e.message}`)
+            return false;
         }
     }
 

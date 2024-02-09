@@ -1,0 +1,3 @@
+notifiers:
+  - type: 'discord'
+    webhook: 'https://discord.com/api/webhooks/1205618719699636285/rnj_oU6z0xD4mP6D42-pb6AAJnskuDHo5RUNmEpn926Sr_GBqv5SULht8HWSCOfeg51w'

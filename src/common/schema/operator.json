@@ -12,7 +12,7 @@
             ],
             "type": "string"
         },
-        "import(\"/home/foxx/code/endlessh-notifications/logReader/src/common/infrastructure/Logging\",{assert:{\"resolution-mode\":\"import\"}}).LoggingOptions": {
+        "import(\"/home/foxx/code/endlessh-notifications/src/common/infrastructure/Logging\",{assert:{\"resolution-mode\":\"import\"}}).LoggingOptions": {
             "properties": {
                 "console": {
                     "$ref": "#/definitions/LogLevel",
@@ -48,7 +48,7 @@
             },
             "type": "object"
         },
-        "import(\"/home/foxx/code/endlessh-notifications/logReader/src/common/infrastructure/webhooks\",{assert:{\"resolution-mode\":\"import\"}}).DiscordConfig": {
+        "import(\"/home/foxx/code/endlessh-notifications/src/common/infrastructure/webhooks\",{assert:{\"resolution-mode\":\"import\"}}).DiscordConfig": {
             "properties": {
                 "debounceInterval": {
                     "type": "string"
@@ -74,7 +74,7 @@
             ],
             "type": "object"
         },
-        "import(\"/home/foxx/code/endlessh-notifications/logReader/src/common/infrastructure/webhooks\",{assert:{\"resolution-mode\":\"import\"}}).GotifyConfig": {
+        "import(\"/home/foxx/code/endlessh-notifications/src/common/infrastructure/webhooks\",{assert:{\"resolution-mode\":\"import\"}}).GotifyConfig": {
             "properties": {
                 "debounceInterval": {
                     "type": "string"
@@ -84,7 +84,7 @@
                     "type": "string"
                 },
                 "priorities": {
-                    "$ref": "#/definitions/import(\"/home/foxx/code/endlessh-notifications/logReader/src/common/infrastructure/webhooks\",{assert:{\"resolution-mode\":\"import\"}}).PrioritiesConfig",
+                    "$ref": "#/definitions/import(\"/home/foxx/code/endlessh-notifications/src/common/infrastructure/webhooks\",{assert:{\"resolution-mode\":\"import\"}}).PrioritiesConfig",
                     "description": "Priority of messages\n\n* Info -> 5\n* Warn -> 7\n* Error -> 10"
                 },
                 "token": {
@@ -116,7 +116,7 @@
             ],
             "type": "object"
         },
-        "import(\"/home/foxx/code/endlessh-notifications/logReader/src/common/infrastructure/webhooks\",{assert:{\"resolution-mode\":\"import\"}}).NtfyConfig": {
+        "import(\"/home/foxx/code/endlessh-notifications/src/common/infrastructure/webhooks\",{assert:{\"resolution-mode\":\"import\"}}).NtfyConfig": {
             "properties": {
                 "debounceInterval": {
                     "type": "string"
@@ -130,7 +130,7 @@
                     "type": "string"
                 },
                 "priorities": {
-                    "$ref": "#/definitions/import(\"/home/foxx/code/endlessh-notifications/logReader/src/common/infrastructure/webhooks\",{assert:{\"resolution-mode\":\"import\"}}).PrioritiesConfig",
+                    "$ref": "#/definitions/import(\"/home/foxx/code/endlessh-notifications/src/common/infrastructure/webhooks\",{assert:{\"resolution-mode\":\"import\"}}).PrioritiesConfig",
                     "description": "Priority of messages\n\n* Info -> 3\n* Warn -> 4\n* Error -> 5"
                 },
                 "topic": {
@@ -163,7 +163,7 @@
             ],
             "type": "object"
         },
-        "import(\"/home/foxx/code/endlessh-notifications/logReader/src/common/infrastructure/webhooks\",{assert:{\"resolution-mode\":\"import\"}}).PrioritiesConfig": {
+        "import(\"/home/foxx/code/endlessh-notifications/src/common/infrastructure/webhooks\",{assert:{\"resolution-mode\":\"import\"}}).PrioritiesConfig": {
             "properties": {
                 "error": {
                     "examples": [
@@ -191,27 +191,33 @@
             ],
             "type": "object"
         },
-        "import(\"/home/foxx/code/endlessh-notifications/logReader/src/common/infrastructure/webhooks\",{assert:{\"resolution-mode\":\"import\"}}).WebhookConfig": {
+        "import(\"/home/foxx/code/endlessh-notifications/src/common/infrastructure/webhooks\",{assert:{\"resolution-mode\":\"import\"}}).WebhookConfig": {
             "anyOf": [
                 {
-                    "$ref": "#/definitions/import(\"/home/foxx/code/endlessh-notifications/logReader/src/common/infrastructure/webhooks\",{assert:{\"resolution-mode\":\"import\"}}).GotifyConfig"
+                    "$ref": "#/definitions/import(\"/home/foxx/code/endlessh-notifications/src/common/infrastructure/webhooks\",{assert:{\"resolution-mode\":\"import\"}}).GotifyConfig"
                 },
                 {
-                    "$ref": "#/definitions/import(\"/home/foxx/code/endlessh-notifications/logReader/src/common/infrastructure/webhooks\",{assert:{\"resolution-mode\":\"import\"}}).NtfyConfig"
+                    "$ref": "#/definitions/import(\"/home/foxx/code/endlessh-notifications/src/common/infrastructure/webhooks\",{assert:{\"resolution-mode\":\"import\"}}).NtfyConfig"
                 },
                 {
-                    "$ref": "#/definitions/import(\"/home/foxx/code/endlessh-notifications/logReader/src/common/infrastructure/webhooks\",{assert:{\"resolution-mode\":\"import\"}}).DiscordConfig"
+                    "$ref": "#/definitions/import(\"/home/foxx/code/endlessh-notifications/src/common/infrastructure/webhooks\",{assert:{\"resolution-mode\":\"import\"}}).DiscordConfig"
                 }
             ]
         }
     },
     "properties": {
+        "endlessDir": {
+            "type": "string"
+        },
         "logging": {
-            "$ref": "#/definitions/import(\"/home/foxx/code/endlessh-notifications/logReader/src/common/infrastructure/Logging\",{assert:{\"resolution-mode\":\"import\"}}).LoggingOptions"
+            "$ref": "#/definitions/import(\"/home/foxx/code/endlessh-notifications/src/common/infrastructure/Logging\",{assert:{\"resolution-mode\":\"import\"}}).LoggingOptions"
+        },
+        "mapquestKey": {
+            "type": "string"
         },
         "notifiers": {
             "items": {
-                "$ref": "#/definitions/import(\"/home/foxx/code/endlessh-notifications/logReader/src/common/infrastructure/webhooks\",{assert:{\"resolution-mode\":\"import\"}}).WebhookConfig"
+                "$ref": "#/definitions/import(\"/home/foxx/code/endlessh-notifications/src/common/infrastructure/webhooks\",{assert:{\"resolution-mode\":\"import\"}}).WebhookConfig"
             },
             "type": "array"
         }
