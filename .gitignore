@@ -80,6 +80,8 @@ fabric.properties
 
 config/logs
 config/*.json
+config/*.yaml
+config/*.bak
 node_modules
 .idea
 endlessData
