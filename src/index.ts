@@ -90,7 +90,7 @@ const configDir = process.env.CONFIG_DIR || path.resolve(projectDir, `./config`)
         }
 
         try {
-            const parser = await EndlessFileParser.fromFile(path.resolve(config.endlessDir, './endless.INFO'), logger);
+            const parser = await EndlessFileParser.fromFile(path.resolve(config.endlessDir, './endlessh.INFO'), logger);
             parser.on('error', (err) => {
                 throw err;
             });
