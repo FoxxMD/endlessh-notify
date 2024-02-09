@@ -108,8 +108,8 @@ const configDir = process.env.CONFIG_DIR || path.resolve(projectDir, `./config`)
 
         const f = 1;
     } catch (e) {
-        logger.error('Exited with uncaught error');
-        logger.error(e);
+        initLogger.error('Exited with uncaught error');
+        initLogger.error(e);
         process.kill(process.pid, 'SIGTERM');
     }
 })();
