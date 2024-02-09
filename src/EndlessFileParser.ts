@@ -34,7 +34,15 @@ export class EndlessFileParser extends EventEmitter {
             .pipe(split2())
             .on('data', (line) => {
                 this.parseLogLine(line);
-            });
+            })
+            .on('truncated', (msg) => {
+                this.logger.debug(msg);
+            })
+            .on('renamed', (msg) => {
+            this.logger.debug(msg)
+        }).on('retry', (msg) => {
+            this.logger.debug(msg)
+        });
 
         await pEvent(this.tailFile, 'close');
     }
