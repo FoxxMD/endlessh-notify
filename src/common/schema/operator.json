@@ -1,0 +1,224 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "definitions": {
+        "LogLevel": {
+            "enum": [
+                "debug",
+                "error",
+                "info",
+                "safety",
+                "verbose",
+                "warn"
+            ],
+            "type": "string"
+        },
+        "import(\"/home/foxx/code/endlessh-notifications/logReader/src/common/infrastructure/Logging\",{assert:{\"resolution-mode\":\"import\"}}).LoggingOptions": {
+            "properties": {
+                "console": {
+                    "$ref": "#/definitions/LogLevel",
+                    "description": "Specify the minimum log level streamed to the console (or docker container)"
+                },
+                "db": {
+                    "type": "boolean"
+                },
+                "discord": {
+                    "$ref": "#/definitions/LogLevel"
+                },
+                "file": {
+                    "description": "Specify the minimum log level to output to rotating files. If `false` no log files will be created.",
+                    "enum": [
+                        "debug",
+                        "error",
+                        false,
+                        "info",
+                        "safety",
+                        "verbose",
+                        "warn"
+                    ]
+                },
+                "level": {
+                    "$ref": "#/definitions/LogLevel",
+                    "default": "'info'",
+                    "description": "Specify the minimum log level for all log outputs without their own level specified.\n\nDefaults to env `LOG_LEVEL` or `info` if not specified."
+                },
+                "stream": {
+                    "$ref": "#/definitions/LogLevel",
+                    "description": "Specify the minimum log level streamed to the UI"
+                }
+            },
+            "type": "object"
+        },
+        "import(\"/home/foxx/code/endlessh-notifications/logReader/src/common/infrastructure/webhooks\",{assert:{\"resolution-mode\":\"import\"}}).DiscordConfig": {
+            "properties": {
+                "debounceInterval": {
+                    "type": "string"
+                },
+                "name": {
+                    "description": "A friendly name used to identify webhook config in logs",
+                    "type": "string"
+                },
+                "type": {
+                    "description": "Webhook type. Valid values are:\n\n* gotify\n* ntfy",
+                    "enum": [
+                        "discord"
+                    ],
+                    "type": "string"
+                },
+                "webhook": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "type",
+                "webhook"
+            ],
+            "type": "object"
+        },
+        "import(\"/home/foxx/code/endlessh-notifications/logReader/src/common/infrastructure/webhooks\",{assert:{\"resolution-mode\":\"import\"}}).GotifyConfig": {
+            "properties": {
+                "debounceInterval": {
+                    "type": "string"
+                },
+                "name": {
+                    "description": "A friendly name used to identify webhook config in logs",
+                    "type": "string"
+                },
+                "priorities": {
+                    "$ref": "#/definitions/import(\"/home/foxx/code/endlessh-notifications/logReader/src/common/infrastructure/webhooks\",{assert:{\"resolution-mode\":\"import\"}}).PrioritiesConfig",
+                    "description": "Priority of messages\n\n* Info -> 5\n* Warn -> 7\n* Error -> 10"
+                },
+                "token": {
+                    "description": "The token created for this Application in Gotify",
+                    "examples": [
+                        "AQZI58fA.rfSZbm"
+                    ],
+                    "type": "string"
+                },
+                "type": {
+                    "description": "Webhook type. Valid values are:\n\n* gotify\n* ntfy",
+                    "enum": [
+                        "gotify"
+                    ],
+                    "type": "string"
+                },
+                "url": {
+                    "description": "The URL of the Gotify server. Same URL that would be used to reach the Gotify UI",
+                    "examples": [
+                        "http://192.168.0.100:8078"
+                    ],
+                    "type": "string"
+                }
+            },
+            "required": [
+                "token",
+                "type",
+                "url"
+            ],
+            "type": "object"
+        },
+        "import(\"/home/foxx/code/endlessh-notifications/logReader/src/common/infrastructure/webhooks\",{assert:{\"resolution-mode\":\"import\"}}).NtfyConfig": {
+            "properties": {
+                "debounceInterval": {
+                    "type": "string"
+                },
+                "name": {
+                    "description": "A friendly name used to identify webhook config in logs",
+                    "type": "string"
+                },
+                "password": {
+                    "description": "Required if topic is protected",
+                    "type": "string"
+                },
+                "priorities": {
+                    "$ref": "#/definitions/import(\"/home/foxx/code/endlessh-notifications/logReader/src/common/infrastructure/webhooks\",{assert:{\"resolution-mode\":\"import\"}}).PrioritiesConfig",
+                    "description": "Priority of messages\n\n* Info -> 3\n* Warn -> 4\n* Error -> 5"
+                },
+                "topic": {
+                    "description": "The topic we should POST to",
+                    "type": "string"
+                },
+                "type": {
+                    "description": "Webhook type. Valid values are:\n\n* gotify\n* ntfy",
+                    "enum": [
+                        "ntfy"
+                    ],
+                    "type": "string"
+                },
+                "url": {
+                    "description": "The URL of the Ntfy server",
+                    "examples": [
+                        "http://192.168.0.100:8078"
+                    ],
+                    "type": "string"
+                },
+                "username": {
+                    "description": "Required if topic is protected",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "topic",
+                "type",
+                "url"
+            ],
+            "type": "object"
+        },
+        "import(\"/home/foxx/code/endlessh-notifications/logReader/src/common/infrastructure/webhooks\",{assert:{\"resolution-mode\":\"import\"}}).PrioritiesConfig": {
+            "properties": {
+                "error": {
+                    "examples": [
+                        10
+                    ],
+                    "type": "number"
+                },
+                "info": {
+                    "examples": [
+                        5
+                    ],
+                    "type": "number"
+                },
+                "warn": {
+                    "examples": [
+                        7
+                    ],
+                    "type": "number"
+                }
+            },
+            "required": [
+                "error",
+                "info",
+                "warn"
+            ],
+            "type": "object"
+        },
+        "import(\"/home/foxx/code/endlessh-notifications/logReader/src/common/infrastructure/webhooks\",{assert:{\"resolution-mode\":\"import\"}}).WebhookConfig": {
+            "anyOf": [
+                {
+                    "$ref": "#/definitions/import(\"/home/foxx/code/endlessh-notifications/logReader/src/common/infrastructure/webhooks\",{assert:{\"resolution-mode\":\"import\"}}).GotifyConfig"
+                },
+                {
+                    "$ref": "#/definitions/import(\"/home/foxx/code/endlessh-notifications/logReader/src/common/infrastructure/webhooks\",{assert:{\"resolution-mode\":\"import\"}}).NtfyConfig"
+                },
+                {
+                    "$ref": "#/definitions/import(\"/home/foxx/code/endlessh-notifications/logReader/src/common/infrastructure/webhooks\",{assert:{\"resolution-mode\":\"import\"}}).DiscordConfig"
+                }
+            ]
+        }
+    },
+    "properties": {
+        "logging": {
+            "$ref": "#/definitions/import(\"/home/foxx/code/endlessh-notifications/logReader/src/common/infrastructure/Logging\",{assert:{\"resolution-mode\":\"import\"}}).LoggingOptions"
+        },
+        "notifiers": {
+            "items": {
+                "$ref": "#/definitions/import(\"/home/foxx/code/endlessh-notifications/logReader/src/common/infrastructure/webhooks\",{assert:{\"resolution-mode\":\"import\"}}).WebhookConfig"
+            },
+            "type": "array"
+        }
+    },
+    "required": [
+        "notifiers"
+    ],
+    "type": "object"
+}
+

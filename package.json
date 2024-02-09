@@ -1,0 +1,52 @@
+{
+  "name": "@foxxmd/endlessh-go-notifier",
+  "version": "0.0.1",
+  "description": "",
+  "type": "module",
+  "main": "src/index.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "APP_VERSION=$npm_package_version nodemon -w src -x tsx src/index.ts",
+    "start": "APP_VERSION=$npm_package_version NODE_ENV=production tsx src/index.ts",
+    "schema": "yarn run -s schema-operator",
+    "schema-operator": "typescript-json-schema tsconfig.json OperatorJsonConfig --out src/common/schema/operator.json --required --tsNodeRegister --refs --validationKeywords deprecationMessage"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/FoxxMD/endlessh-notifications.git"
+  },
+  "author": "FoxxMD",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/FoxxMD/endlessh-notifications/issues"
+  },
+  "homepage": "https://github.com/FoxxMD/endlessh-notifications#readme",
+  "dependencies": {
+    "@foxxmd/winston": "^3.3.31",
+    "@logdna/tail-file": "^3.0.1",
+    "ajv": "^8.12.0",
+    "common-tags": "^1.8.2",
+    "dayjs": "^1.11.10",
+    "deepmerge": "^4.3.1",
+    "discord.js": "14.11.0",
+    "es6-error": "^4.1.1",
+    "got": "^14.2.0",
+    "gotify": "^1.1.0",
+    "ntfy": "^1.5.2",
+    "pony-cause": "^2.1.10",
+    "triple-beam": "^1.4.1",
+    "tsx": "^4.7.0",
+    "winston-daily-rotate-file": "^5.0.0",
+    "winston-null": "^2.0.0",
+    "winston-transport": "^4.7.0",
+    "yaml": "^2.3.4"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.17",
+    "@types/triple-beam": "^1.3.5",
+    "nodemon": "^3.0.3",
+    "ts-essentials": "^9.4.1",
+    "typescript": "^5.3.3",
+    "typescript-json-schema": "~0.55"
+  }
+}
