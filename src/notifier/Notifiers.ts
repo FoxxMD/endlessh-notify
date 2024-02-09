@@ -13,6 +13,8 @@ import {
 } from "../common/infrastructure/webhooks.js";
 import {DiscordWebhookNotifier} from "./DiscordWebhookNotifier.js";
 import {LRUCache} from "lru-cache";
+import got from 'got';
+import {ErrorWithCause} from "pony-cause";
 
 export class Notifiers {
 
@@ -23,7 +25,7 @@ export class Notifiers {
     emitter: EventEmitter;
 
     mapquestKey?: string;
-    imageCache: LRUCache<string,string> = new LRUCache({max: 100});
+    imageCache: LRUCache<string,Buffer> = new LRUCache({max: 100});
 
     constructor(logger: Logger, mapquestKey?: string, emitter: EventEmitter = new EventEmitter()) {
         this.emitter = emitter;
@@ -68,11 +70,35 @@ export class Notifiers {
     notify = async (payload: WebhookPayload) => {
         let anySent = false;
         for (const webhook of this.webhooks) {
-            const res = await webhook.notify(payload);
+
+            let imageData: Buffer | undefined;
+            if(webhook instanceof DiscordWebhookNotifier && this.mapquestKey !== undefined && payload.log.geo !== undefined) {
+                imageData = await this.getMapquestImage(payload.log.geo.lat, payload.log.geo.lon);
+            }
+
+            const res = await webhook.notify({...payload, mapImageData: imageData});
             if(res !== undefined) {
                 anySent = true;
             }
         }
         return anySent;
+    }
+
+    getMapquestImage = async (lat: number, long: number): Promise<Buffer | undefined> => {
+        const latlong = `${lat.toString()},${long.toString()}`;
+        let data = this.imageCache.get(latlong);
+        if(data === undefined) {
+            try {
+                this.logger.debug(`Getting Mapquest Image => https://www.mapquestapi.com/staticmap/v5/map?center=${latlong}&size=500,300}`);
+               data = await got.get(`https://www.mapquestapi.com/staticmap/v5/map?center=${latlong}&size=500,300&key=${this.mapquestKey}`).buffer();
+               this.imageCache.set(latlong, data);
+            } catch (e) {
+                this.logger.warn(new ErrorWithCause(`Failed to get mapquest image for ${latlong}`, {cause: e}));
+                return undefined;
+            }
+        } else {
+            this.logger.debug(`Got cached image data for ${latlong}`)
+        }
+        return data;
     }
 }

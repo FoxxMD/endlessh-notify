@@ -20,6 +20,7 @@ export class GeoLookup {
         if (info === undefined) {
             try {
                 const resp = await getIpGeolocation(address.address, defaultApiApiQuery.fields);
+                this.logger.debug(`Got geolocation data from ip-api for ${address.address}`);
                 if (resp.status === 'fail') {
                     if (resp.message === 'invalid query') {
                         throw new ErrorWithCause(`Unable to get geolocation for '${address.address}' => IP-API responded that IP was invalid`);
@@ -30,8 +31,10 @@ export class GeoLookup {
                 info = resp;
                 this.cache.set(address.address, resp);
             } catch (e) {
-                throw new ErrorWithCause('Failed to get geolocation', {cause: e});
+                throw new ErrorWithCause(`Failed to get geolocation for ${address.address}`, {cause: e});
             }
+        } else {
+            this.logger.debug(`Got cached geolocation data for ${address.address}`);
         }
         return info;
     }

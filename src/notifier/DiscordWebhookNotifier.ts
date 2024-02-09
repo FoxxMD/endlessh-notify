@@ -45,9 +45,9 @@ export class DiscordWebhookNotifier extends AbstractWebhookNotifier {
                 description: `${flag}${payload.log.host.address}${geoDesc} <https://www.shodan.io/host/${payload.log.host.address}>`
             };
             if(payload.mapImageData !== undefined) {
-                const name = `mq-${dayjs().unix()}`;
+                const name = `mq-${dayjs().unix()}.jpg`;
                 const file = new AttachmentBuilder(payload.mapImageData, {name});
-                embed.image = {url: name};
+                embed.image = {url: `attachment://${name}`};
                 files.push(file);
             }
             await this.client.send({embeds: [embed], files});

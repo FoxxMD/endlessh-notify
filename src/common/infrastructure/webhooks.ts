@@ -3,7 +3,7 @@ import {EndlessLog} from "./Atomic.js";
 export interface WebhookPayload {
     log: EndlessLog
     priority?: 'info' | 'warn' | 'error'
-    mapImageData?: string
+    mapImageData?: Buffer
 }
 
 export interface PrioritiesConfig {

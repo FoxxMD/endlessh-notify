@@ -1,9 +1,10 @@
 import {Logger} from '@foxxmd/winston';
 import {mergeArr, parseDuration} from "../utils/index.js";
-import {GotifyConfig, NtfyConfig, WebhookConfig, WebhookPayload} from "../common/infrastructure/webhooks.js";
+import {WebhookConfig, WebhookPayload} from "../common/infrastructure/webhooks.js";
 import {Duration} from "dayjs/plugin/duration.js";
 import {ErrorWithCause} from "pony-cause";
 import TTLCache from '@isaacs/ttlcache';
+import dayjs, {Dayjs} from "dayjs";
 
 export abstract class AbstractWebhookNotifier {
 
@@ -15,7 +16,7 @@ export abstract class AbstractWebhookNotifier {
     authed: boolean = false;
 
     ttl: Duration;
-    cache: TTLCache<string, boolean>
+    cache: TTLCache<string, Dayjs>
 
     protected constructor(type: string, defaultName: string, config: WebhookConfig, logger: Logger) {
         this.config = config;
@@ -26,7 +27,7 @@ export abstract class AbstractWebhookNotifier {
         } catch (e) {
             throw new ErrorWithCause(`Unable to parse debounceInterval for ${type} - ${defaultName} => ${config.debounceInterval}`, {cause: e});
         }
-        this.cache = new TTLCache<string, boolean>({ max: 500, ttl: this.ttl.asMilliseconds()});
+        this.cache = new TTLCache<string, Dayjs>({ max: 500, ttl: this.ttl.asMilliseconds()});
     }
 
     initialize = async () => {
@@ -47,8 +48,15 @@ export abstract class AbstractWebhookNotifier {
             this.logger.debug('Will not use notifier because it is not correctly authenticated.');
             return;
         }
-        //if(this.cache.has)
-        return await this.doNotify(payload);
+        const lastSeen = this.cache.get(payload.log.host.address);
+        if(lastSeen !== undefined) {
+            this.logger.debug(`Not sending notification because IP was seen less than TTL ago (${dayjs.duration(dayjs().diff(lastSeen)).humanize(true)})`);
+            return;
+        }
+        const res = await this.doNotify(payload);
+        if(res) {
+            this.cache.set(payload.log.host.address, dayjs());
+        }
     }
     abstract doNotify: (payload: WebhookPayload) => Promise<boolean>;
 }
