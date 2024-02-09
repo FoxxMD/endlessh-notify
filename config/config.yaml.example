@@ -1,0 +1,4 @@
+notifiers:
+  - type: 'discord'
+    webhook: 'https://discord.com/api/webhooks/MY_WEBHOOK'
+mapquestKey: 'MY_KEY'
