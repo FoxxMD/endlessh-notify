@@ -65,7 +65,7 @@ const configDir = process.env.CONFIG_DIR || path.resolve(projectDir, `./config`)
                     try {
                         geo = await lookup.getInfo(line.host);
                     } catch (e) {
-                        this.logger.warn(e);
+                        logger.warn(e);
                     }
                     endlessLogQueue.push({...line, geo});
                 }
@@ -90,7 +90,7 @@ const configDir = process.env.CONFIG_DIR || path.resolve(projectDir, `./config`)
         }
 
         try {
-            const parser = await EndlessFileParser.fromFile(path.resolve(config.endlessDir, './endlessh.INFO'), logger);
+            const parser = await EndlessFileParser.fromFile(config.endlessDir, logger);
             parser.on('error', (err) => {
                 throw err;
             });

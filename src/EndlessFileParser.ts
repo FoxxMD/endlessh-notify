@@ -6,6 +6,9 @@ import {EventEmitter} from "events";
 import split2 from 'split2';
 import {endlessLogLineToFriendly, mergeArr, parseEndlessLogLine} from "./utils/index.js";
 import {pEvent} from 'p-event';
+import path from "path";
+
+const endlessFileNames = ['current', 'endlessh.INFO'];
 
 export class EndlessFileParser extends EventEmitter {
 
@@ -61,14 +64,23 @@ export class EndlessFileParser extends EventEmitter {
         }
     }
 
-    public static async fromFile(path: string, logger: Logger) {
+    public static async fromFile(dir: string, logger: Logger) {
         const childLogger = logger.child({labels: ['Parser']}, mergeArr);
-        childLogger.info(`Attempting to open log file => ${path}`);
-        try {
-            await fileIsReadable(path);
-        } catch (e) {
-            throw new ErrorWithCause('Could not open endlessh-go log file', {cause: e});
+        for(const name of endlessFileNames) {
+            const filePath = path.resolve(dir, `./${name}`);
+            childLogger.info(`Attempting to open log file => ${filePath}`);
+            try {
+                await fileIsReadable(filePath);
+                childLogger.info('Found a readable file!');
+                return new EndlessFileParser(new TailFile(filePath), logger);
+            } catch (e) {
+                if(e.message.includes('No file found')) {
+                    childLogger.warn(`No file found`);
+                } else {
+                    childLogger.warn(new ErrorWithCause(`Could not open log file`, {cause: e}))
+                }
+            }
         }
-        return new EndlessFileParser(new TailFile(path), logger);
+        throw new Error(`No log file could be opened!`);
     }
 }

@@ -270,39 +270,52 @@ export const parseDuration = (val: string, strict = true): Duration => {
     return res[0].duration;
 }
 
-const ENDLESS_ACCEPT_REGEX: RegExp = new RegExp(/^I(?<month>\d{2})(?<day>\d{2}) (?<time>\d{2}:\d{2}:\d{2}.\d{3})\d{3}.+ACCEPT host=(?<host>\S+)/i);
-const ENDLESS_CLOSE_REGEX: RegExp = new RegExp(/^I(?<month>\d{2})(?<day>\d{2}) (?<time>\d{2}:\d{2}:\d{2}.\d{3})\d{3}.+CLOSE host=(?<host>\S+).+time=(?<duration>\S+)/i);
+const ENDLESS_GO_ACCEPT_REGEX: RegExp = new RegExp(/^I(?<month>\d{2})(?<day>\d{2}) (?<time>\d{2}:\d{2}:\d{2}.\d{3})\d{3}.+ACCEPT host=(?<host>\S+)/i);
+const ENDLESS_GO_CLOSE_REGEX: RegExp = new RegExp(/^I(?<month>\d{2})(?<day>\d{2}) (?<time>\d{2}:\d{2}:\d{2}.\d{3})\d{3}.+CLOSE host=(?<host>\S+).+time=(?<duration>\S+)/i);
+
+const ENDLESS_ACCEPT_REGEX: RegExp = new RegExp(/^(?<year>\d{4})-(?<month>\d{2})-(?<day>\d{2}) (?<time>\d{2}:\d{2}:\d{2}.\d{3})\d{3}.+ACCEPT host=(?<host>\S+)/i);
+const ENDLESS_CLOSE_REGEX: RegExp = new RegExp(/^(?<year>\d{4})-(?<month>\d{2})-(?<day>\d{2}) (?<time>\d{2}:\d{2}:\d{2}.\d{3})\d{3}.+CLOSE host=(?<host>\S+).+time=(?<duration>\S+)/i);
+
+const ENDLESS_ACCEPTS: RegExp[] = [ENDLESS_GO_ACCEPT_REGEX, ENDLESS_ACCEPT_REGEX];
+const ENDLESS_CLOSES: RegExp[] = [ENDLESS_GO_CLOSE_REGEX, ENDLESS_CLOSE_REGEX];
 
 export const parseEndlessLogLine = (line: string): EndlessLogLine | undefined => {
-    let res = parseRegexSingleOrFail(ENDLESS_ACCEPT_REGEX, line);
-    if (res !== undefined) {
-        let address: Address6 | Address4;
-        try {
-            address = parseToAddress(res.named.host);
-        } catch (e) {
-            throw new ErrorWithCause('Could not parse log line', {cause: e});
-        }
-        return {
-            type: 'accept',
-            time: dayjs(`${dayjs().year()}-${res.named.month}-${res.named.day}T${res.named.time}`, {utc: false}),
-            host: address
-        }
-    }
-    res = parseRegexSingleOrFail(ENDLESS_CLOSE_REGEX, line);
-    if (res !== undefined) {
-        let address: Address6 | Address4;
-        try {
-            address = parseToAddress(res.named.host);
-        } catch (e) {
-            throw new ErrorWithCause('Could not parse log line', {cause: e});
-        }
-        return {
-            type: 'close',
-            time: dayjs(`${dayjs().year()}-${res.named.month}-${res.named.day}T${res.named.time}`, {utc: false}),
-            host: address,
-            duration: dayjs.duration(Number.parseFloat(res.named.duration), 's')
+    for(const reg of ENDLESS_ACCEPTS) {
+        let res = parseRegexSingleOrFail(reg, line);
+        if (res !== undefined) {
+            let address: Address6 | Address4;
+            try {
+                address = parseToAddress(res.named.host);
+            } catch (e) {
+                throw new ErrorWithCause('Could not parse log line', {cause: e});
+            }
+            return {
+                type: 'accept',
+                time: dayjs(`${res.named.year ?? dayjs().year()}-${res.named.month}-${res.named.day}T${res.named.time}`, {utc: false}),
+                host: address
+            }
         }
     }
+
+    for(const reg of ENDLESS_CLOSES) {
+        const res = parseRegexSingleOrFail(reg, line);
+        if (res !== undefined) {
+            let address: Address6 | Address4;
+            try {
+                address = parseToAddress(res.named.host);
+            } catch (e) {
+                throw new ErrorWithCause('Could not parse log line', {cause: e});
+            }
+            return {
+                type: 'close',
+                time: dayjs(`${res.named.year ?? dayjs().year()}-${res.named.month}-${res.named.day}T${res.named.time}`, {utc: false}),
+                host: address,
+                duration: dayjs.duration(Number.parseFloat(res.named.duration), 's')
+            }
+        }
+    }
+
+    return undefined;
 }
 
 export const parseToAddress = (val: string): Address4 | Address6 => {
