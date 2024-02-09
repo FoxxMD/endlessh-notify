@@ -21,7 +21,7 @@ export class Notifiers {
 
     emitter: EventEmitter;
 
-    constructor(emitter: EventEmitter) {
+    constructor(emitter: EventEmitter = new EventEmitter()) {
         this.emitter = emitter;
 
         this.logger = winston.loggers.get('app').child({labels: ['Notifiers']}, mergeArr);

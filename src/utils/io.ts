@@ -57,6 +57,19 @@ export async function readFile(path: any, {throwOnNotFound = true} = {}): Promis
     }
 }
 
+export async function fileIsReadable(path: any): Promise<boolean> {
+    try {
+        await promises.access(path, constants.R_OK);
+        return true;
+    } catch (e) {
+        const {code} = e;
+        if (code === 'ENOENT') {
+            throw new ErrorWithCause(`No file found at given path: ${path}`, {cause: e});
+        }
+        throw new ErrorWithCause(`Encountered error while parsing file: ${path}`, {cause: e})
+    }
+}
+
 export const randomFilePath = async (location: string) => {
     const directoryFiles = await promises.readdir(location);
     return pickRandom(directoryFiles);

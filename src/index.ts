@@ -10,6 +10,9 @@ import {Logger} from "@foxxmd/winston";
 import {getLogger} from "./common/logging.js";
 import {ErrorWithCause} from "pony-cause";
 import {parseConfigFromSources} from "./common/config/ConfigBuilder.js";
+import {Notifiers} from "./notifier/Notifiers.js";
+import {EndlessFileParser} from "./EndlessFileParser.js";
+import {pEvent} from 'p-event';
 
 dayjs.extend(utc)
 dayjs.extend(isBetween);
@@ -31,7 +34,6 @@ process.on('uncaughtExceptionMonitor', (err, origin) => {
 })
 
 const configDir = process.env.CONFIG_DIR || path.resolve(projectDir, `./config`);
-const endlessDir = process.env.ENDLESS_DIR || path.resolve(projectDir, `./endlessData`);
 
 (async function () {
     try {
@@ -45,7 +47,20 @@ const endlessDir = process.env.ENDLESS_DIR || path.resolve(projectDir, `./endles
 
         logger = getLogger(logging);
 
+        const notifiers = new Notifiers();
+        await notifiers.buildWebhooks(config.notifiers);
 
+        try {
+            const parser =  await EndlessFileParser.fromFile(path.resolve(config.endlessDir, './endless.INFO'), logger);
+            parser.on('error', (err) => {
+               throw err;
+            });
+            await parser.start();
+        } catch (e) {
+            throw e;
+        }
+
+        const f = 1;
     } catch (e) {
         logger.error('Exited with uncaught error');
         logger.error(e);

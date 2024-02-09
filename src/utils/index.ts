@@ -7,10 +7,18 @@ import {
     TemplateTransformer,
     trimResultTransformer
 } from 'common-tags'
-import {NamedGroup, RegExResult} from "../common/infrastructure/Atomic.js";
+import {
+    EndlessLogLine,
+    isEndlessClose,
+    NamedGroup,
+    numberFormatOptions,
+    RegExResult
+} from "../common/infrastructure/Atomic.js";
 import {Duration} from "dayjs/plugin/duration.js";
 import {ErrorWithCause} from "pony-cause";
 import InvalidRegexError from "../common/errors/InvalidRegexError.js";
+import {Address4, Address6} from "ip-address";
+import {format} from "logform";
 
 export const overwriteMerge = (destinationArray: any[], sourceArray: any[], options: any): any[] => sourceArray;
 
@@ -207,6 +215,17 @@ export const parseRegex = (reg: RegExp, val: string): RegExResult[] | undefined 
     }];
 }
 
+export const parseRegexSingleOrFail = (reg: RegExp, val: string): RegExResult | undefined => {
+    const results = parseRegex(reg, val);
+    if (results !== undefined) {
+        if (results.length > 1) {
+            throw new ErrorWithCause(`Expected Regex to match once but got ${results.length} results. Either Regex must NOT be global (using 'g' flag) or parsed value must only match regex once. Given: ${val} || Regex: ${reg.toString()}`);
+        }
+        return results[0];
+    }
+    return undefined;
+}
+
 // string must only contain ISO8601 optionally wrapped by whitespace
 const ISO8601_REGEX: RegExp = /^\s*((-?)P(?=\d|T\d)(?:(\d+)Y)?(?:(\d+)M)?(?:(\d+)([DW]))?(?:T(?:(\d+)H)?(?:(\d+)M)?(?:(\d+(?:\.\d+)?)S)?)?)\s*$/;
 // finds ISO8601 in any part of a string
@@ -250,3 +269,138 @@ export const parseDuration = (val: string, strict = true): Duration => {
     }
     return res[0].duration;
 }
+
+const ENDLESS_ACCEPT_REGEX: RegExp = new RegExp(/^I(?<month>\d{2})(?<day>\d{2}) (?<time>\d{2}:\d{2}:\d{2}.\d{3})\d{3}.+ACCEPT host=(?<host>\S+)/i);
+const ENDLESS_CLOSE_REGEX: RegExp = new RegExp(/^I(?<month>\d{2})(?<day>\d{2}) (?<time>\d{2}:\d{2}:\d{2}.\d{3})\d{3}.+CLOSE host=(?<host>\S+).+time=(?<duration>\S+)/i);
+
+export const parseEndlessLogLine = (line: string): EndlessLogLine | undefined => {
+    let res = parseRegexSingleOrFail(ENDLESS_ACCEPT_REGEX, line);
+    if (res !== undefined) {
+        let address: Address6 | Address4;
+        try {
+            address = parseToAddress(res.named.host);
+        } catch (e) {
+            throw new ErrorWithCause('Could not parse log line', {cause: e});
+        }
+        return {
+            type: 'accept',
+            time: dayjs(`${dayjs().year()}-${res.named.month}-${res.named.day}T${res.named.time}`, {utc: false}),
+            host: address
+        }
+    }
+    res = parseRegexSingleOrFail(ENDLESS_CLOSE_REGEX, line);
+    if (res !== undefined) {
+        let address: Address6 | Address4;
+        try {
+            address = parseToAddress(res.named.host);
+        } catch (e) {
+            throw new ErrorWithCause('Could not parse log line', {cause: e});
+        }
+        return {
+            type: 'close',
+            time: dayjs(`${dayjs().year()}-${res.named.month}-${res.named.day}T${res.named.time}`, {utc: false}),
+            host: address,
+            duration: dayjs.duration(Number.parseFloat(res.named.duration), 's')
+        }
+    }
+}
+
+export const parseToAddress = (val: string): Address4 | Address6 => {
+    let address: Address6 | Address4;
+    if (Address4.isValid(val)) {
+        address = new Address4(val);
+    } else if (Address6.isValid(val)) {
+        address = new Address6(val)
+    } else {
+        throw new ErrorWithCause(`Could not parse host '${val}' as a valid ipv4 or ipv6 address!`);
+    }
+    return address;
+}
+
+export const endlessLogLineToFriendly = (line: EndlessLogLine): string => {
+    const parts = [
+        line.time.format(),
+        `${(line.host instanceof Address4) ? 'IPV4' : 'IPv6'} ${line.host.address}`
+    ];
+    if(isEndlessClose(line)) {
+        parts.push(`Trapped ${durationToHuman(line.duration)}`)
+    }
+    return parts.join(' | ');
+}
+
+export const durationToNormalizedTime = (dur: Duration): { hours: number, minutes: number, seconds: number } => {
+    const totalSeconds = dur.asSeconds();
+
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds - (hours * 3600)) / 60);
+    const seconds = totalSeconds - (hours * 3600) - (minutes * 60);
+
+    return {
+        hours,
+        minutes,
+        seconds
+    };
+}
+
+export const durationToTimestamp = (dur: Duration): string => {
+    const nTime = durationToNormalizedTime(dur);
+
+    const parts: string[] = [];
+    if (nTime.hours !== 0) {
+        parts.push(nTime.hours.toString().padStart(2, "0"));
+    }
+    parts.push(nTime.minutes.toString().padStart(2, "0"));
+    parts.push(nTime.seconds.toString().padStart(2, "0"));
+    return parts.join(':');
+}
+
+export const durationToHuman = (dur: Duration): string => {
+    const nTime = durationToNormalizedTime(dur);
+
+    const parts: string[] = [];
+    if (nTime.hours !== 0) {
+        parts.push(`${nTime.hours} hr`);
+    }
+    parts.push(`${nTime.minutes} min`);
+    parts.push(`${formatNumber(nTime.seconds, {toFixed: 0})} sec`);
+    return parts.join(' ');
+}
+
+export const formatNumber = (val: number | string, options?: numberFormatOptions) => {
+    const {
+        toFixed = 2,
+        defaultVal = null,
+        prefix = '',
+        suffix = '',
+        round,
+    } = options || {};
+    let parsedVal = typeof val === 'number' ? val : Number.parseFloat(val);
+    if (Number.isNaN(parsedVal)) {
+        return defaultVal;
+    }
+    if(!Number.isFinite(val)) {
+        return 'Infinite';
+    }
+    let prefixStr = prefix;
+    const {enable = false, indicate = true, type = 'round'} = round || {};
+    if (enable && !Number.isInteger(parsedVal)) {
+        switch (type) {
+            case 'round':
+                parsedVal = Math.round(parsedVal);
+                break;
+            case 'ceil':
+                parsedVal = Math.ceil(parsedVal);
+                break;
+            case 'floor':
+                parsedVal = Math.floor(parsedVal);
+        }
+        if (indicate) {
+            prefixStr = `~${prefix}`;
+        }
+    }
+    const localeString = parsedVal.toLocaleString(undefined, {
+        minimumFractionDigits: toFixed,
+        maximumFractionDigits: toFixed,
+    });
+    return `${prefixStr}${localeString}${suffix}`;
+};

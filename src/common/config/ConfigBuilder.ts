@@ -1,5 +1,5 @@
 import winston, {Logger} from "@foxxmd/winston";
-import {configDir} from "../index.js";
+import {configDir, projectDir} from "../index.js";
 import {readFileToString} from "../../utils/io.js";
 import {ErrorWithCause} from "pony-cause";
 import {parseFromYamlToObject} from "./ConfigUtil.js";
@@ -18,6 +18,7 @@ import {LogLevel} from "../infrastructure/Atomic.js";
 import {overwriteMerge} from "../../utils/index.js";
 import {AppLogger} from "../logging.js";
 import {DiscordConfig, GotifyConfig, NtfyConfig, WebhookConfig} from "../infrastructure/webhooks.js";
+import path from "path";
 
 export const createAjvFactory = (logger: Logger): AjvNS.default => {
     const validator =  new Ajv.default({logger: logger, verbose: true, strict: "log", allowUnionTypes: true});
@@ -85,7 +86,7 @@ export const parseConfigFromSources = async (operatorDir: string) => {
     
     let configFromFile: OperatorJsonConfig = {notifiers: []}
 
-    const operatorConfig = `${operatorDir}/config.yaml`
+    const operatorConfig = path.resolve(operatorDir, `./config.yaml`);
 
     let rawConfig = '';
     try {
@@ -124,7 +125,7 @@ export const parseConfigFromSources = async (operatorDir: string) => {
     }) as OperatorJsonConfig;
 
     if(mergedConfig.endlessDir === undefined) {
-        mergedConfig.endlessDir = './endlessData'
+        mergedConfig.endlessDir = path.resolve(projectDir, `./endlessData`)
     }
 
     return mergedConfig as OperatorConfig;

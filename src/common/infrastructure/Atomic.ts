@@ -1,5 +1,8 @@
 import {MESSAGE} from 'triple-beam';
 import {BaseMessageOptions} from "discord.js";
+import {Dayjs} from "dayjs";
+import {Address4, Address6} from "ip-address";
+import {Duration} from "dayjs/plugin/duration.js";
 export type LogLevel = "error" | "warn" | "safety" | "info" | "verbose" | "debug";
 export const logLevels = ['error', 'warn', 'info', 'verbose', 'debug'];
 
@@ -97,4 +100,41 @@ export interface RegExResult {
     groups: string[],
     index: number
     named: NamedGroup
+}
+
+export interface EndlessLogLineBase {
+    type: 'accept' | 'close'
+    time: Dayjs
+    host: Address4 | Address6
+}
+
+export interface EndlessAcceptLogLine extends EndlessLogLineBase {
+    type: 'accept'
+}
+
+export interface EndlessCloseLogLine extends EndlessLogLineBase {
+    type: 'close'
+    duration: Duration
+}
+
+export type EndlessLogLine = EndlessAcceptLogLine | EndlessCloseLogLine;
+
+export const isEndlessAccept = (line: EndlessLogLineBase): line is EndlessAcceptLogLine => {
+    return line.type === 'accept';
+}
+
+export const isEndlessClose = (line: EndlessLogLineBase): line is EndlessCloseLogLine => {
+    return line.type === 'close';
+}
+
+export interface numberFormatOptions {
+    toFixed: number,
+    defaultVal?: any,
+    prefix?: string,
+    suffix?: string,
+    round?: {
+        type?: string,
+        enable: boolean,
+        indicate?: boolean,
+    }
 }
