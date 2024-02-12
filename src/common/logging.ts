@@ -24,7 +24,9 @@ if (typeof process.env.CONFIG_DIR === 'string') {
     logPath = path.resolve(process.env.CONFIG_DIR, './logs');
 }
 
-loggers.add('noop', {transports: [new NullTransport()]});
+if(!loggers.has('noop')) {
+    loggers.add('noop', {transports: [new NullTransport()]});
+}
 
 export const getLogger = (config: LogConfig = {}, name = 'App'): AppLogger => {
 

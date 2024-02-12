@@ -1,5 +1,4 @@
 import {MESSAGE} from 'triple-beam';
-import {BaseMessageOptions} from "discord.js";
 import {Dayjs} from "dayjs";
 import {Address4, Address6} from "ip-address";
 import {Duration} from "dayjs/plugin/duration.js";
@@ -102,10 +101,12 @@ export interface RegExResult {
     named: NamedGroup
 }
 
+export type IPAddress = Address4 | Address6;
+
 export interface EndlessLogLineBase {
     type: 'accept' | 'close'
     time: Dayjs
-    host: Address4 | Address6
+    host: IPAddress
 }
 
 export interface EndlessAcceptLogLine extends EndlessLogLineBase {
@@ -126,6 +127,26 @@ export const isEndlessAccept = (line: EndlessLogLineBase): line is EndlessAccept
 export const isEndlessClose = (line: EndlessLogLineBase): line is EndlessCloseLogLine => {
     return line.type === 'close';
 }
+
+/**
+ * @example 2024-02-09 17:32:27.585995618  2024-02-09T22:32:27.585Z ACCEPT host=::ffff:127.0.0.1 port=52066 fd=4 n=1/50
+ * */
+export type EndlesshAcceptLineStr = string;
+/**
+ * @example 2024-02-09 17:32:47.600712623  2024-02-09T22:32:47.600Z CLOSE host=::ffff:127.0.0.1 port=52066 fd=4 time=20.015 bytes=9
+ * */
+export type EndlesshCloseLineStr = string;
+export type EndlesshLineStr = EndlesshAcceptLineStr | EndlesshCloseLineStr;
+
+/**
+ * @example I0201 18:19:05.059194       1 client.go:58] ACCEPT host=141.98.11.11 port=46374 n=1/4096
+ * */
+export type EndlesshGoAcceptLineStr = string;
+/**
+ * @example I0201 18:19:33.074002       1 client.go:99] CLOSE host=141.98.11.11 port=46374 time=28.014545892 bytes=449
+ * */
+export type EndlesshGoCloseLineStr = string;
+export type EndlesshGoLineStr = EndlesshGoAcceptLineStr | EndlesshGoCloseLineStr;
 
 export interface numberFormatOptions {
     toFixed: number,
@@ -289,4 +310,10 @@ export interface IPDataFields {
 
 export type EndlessLog = EndlessLogLine & {
     geo?: IPDataFields
+}
+
+// https://stackoverflow.com/a/70887388/1469797
+export type ArbitraryObject = { [key: string]: unknown; };
+export function isArbitraryObject(potentialObject: unknown): potentialObject is ArbitraryObject {
+    return typeof potentialObject === "object" && potentialObject !== null;
 }

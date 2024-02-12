@@ -7,10 +7,17 @@ import split2 from 'split2';
 import {endlessLogLineToFriendly, mergeArr, parseEndlessLogLine} from "./utils/index.js";
 import {pEvent} from 'p-event';
 import path from "path";
+import {EndlessLogLine} from "./common/infrastructure/Atomic.js";
+import {TypedEventEmitter} from "./utils/TypedEventEmitter.js";
 
 const endlessFileNames = ['current', 'endlessh.INFO'];
 
-export class EndlessFileParser extends EventEmitter {
+type EndlessFileEventTypes = {
+    'line': [line: EndlessLogLine],
+    'error': [error: Error]
+}
+
+export class EndlessFileParser extends TypedEventEmitter<EndlessFileEventTypes> {
 
     tailFile: TailFile;
     logger: Logger;
@@ -46,8 +53,10 @@ export class EndlessFileParser extends EventEmitter {
         }).on('retry', (msg) => {
             this.logger.debug(msg)
         });
+    }
 
-        await pEvent(this.tailFile, 'close');
+    public async stop() {
+        await this.tailFile.quit();
     }
 
     protected parseLogLine(line: string) {

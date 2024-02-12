@@ -15,7 +15,7 @@ import {
     RegExResult
 } from "../common/infrastructure/Atomic.js";
 import {Duration} from "dayjs/plugin/duration.js";
-import {ErrorWithCause} from "pony-cause";
+import {ErrorWithCause, getErrorCause} from "pony-cause";
 import InvalidRegexError from "../common/errors/InvalidRegexError.js";
 import {Address4, Address6} from "ip-address";
 import {format} from "logform";
@@ -163,17 +163,7 @@ export function parseBool(value: any, prev: any = false): boolean {
     throw new Error(`'${value.toString()}' is not a boolean value.`);
 }
 
-const markdownListTransformer: TemplateTransformer = {
-    onSubstitution(substitution, resultSoFar, context) {
-        if (Array.isArray(substitution)) {
-            return substitution.map(x => `* ${x}`).join('\n');
-        }
-        return substitution;
-    }
-}
-
-export const markdownTag = new TemplateTag(
-    markdownListTransformer,
+export const plainTag = new TemplateTag(
     stripIndentTransformer('all'),
     trimResultTransformer()
 );
@@ -416,4 +406,32 @@ export const formatNumber = (val: number | string, options?: numberFormatOptions
         maximumFractionDigits: toFixed,
     });
     return `${prefixStr}${localeString}${suffix}`;
+};
+
+/**
+ * Adapted from https://github.com/voxpelli/pony-cause/blob/main/lib/helpers.js to find cause by truthy function
+ * */
+export const findCauseByFunc = (err: any, func: (e: Error) => boolean) => {
+    if (!err || !func) return;
+    if (!(err instanceof Error)) return;
+    if (typeof func !== 'function') {
+        return;
+    }
+
+    /**
+     * Ensures we don't go circular
+     */
+    const seen = new Set<Error>();
+
+    let currentErr: Error | undefined = err;
+
+    while (currentErr && !seen.has(currentErr)) {
+        seen.add(currentErr);
+
+        if (func(currentErr)) {
+            return currentErr;
+        }
+
+        currentErr = getErrorCause(currentErr);
+    }
 };

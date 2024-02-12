@@ -59,7 +59,7 @@ export async function readFile(path: any, {throwOnNotFound = true} = {}): Promis
 
 export async function fileIsReadable(path: any): Promise<boolean> {
     try {
-        await promises.access(path, constants.R_OK);
+        accessSync(path, constants.R_OK);
         return true;
     } catch (e) {
         const {code} = e;

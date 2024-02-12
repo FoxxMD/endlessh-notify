@@ -15,6 +15,7 @@ import {EndlessFileParser} from "./EndlessFileParser.js";
 import {EndlessLog, EndlessLogLine, IPDataFields} from "./common/infrastructure/Atomic.js";
 import {GeoLookup} from "./GeoLookup.js";
 import {sleep} from "./utils/index.js";
+import {pEvent} from "p-event";
 
 dayjs.extend(utc)
 dayjs.extend(isBetween);
@@ -94,7 +95,7 @@ const configDir = process.env.CONFIG_DIR || path.resolve(projectDir, `./config`)
             parser.on('error', (err) => {
                 throw err;
             });
-            parser.on('line', async (line: EndlessLogLine) => {
+            parser.on('line', async (line) => {
                 if (line.type === 'accept') {
                     logLinesQueue.push(line);
                 }
@@ -102,6 +103,7 @@ const configDir = process.env.CONFIG_DIR || path.resolve(projectDir, `./config`)
             processLineQueue();
             processEndlessLog()
             await parser.start();
+            await pEvent(parser, 'close');
         } catch (e) {
             throw e;
         }
