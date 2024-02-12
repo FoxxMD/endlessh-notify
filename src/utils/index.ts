@@ -323,6 +323,7 @@ export const parseToAddress = (val: string): Address4 | Address6 => {
 export const endlessLogLineToFriendly = (line: EndlessLogLine): string => {
     const parts = [
         line.time.format(),
+        line.type === 'accept' ? 'ACCEPT' : 'CLOSE',
         `${(line.host instanceof Address4) ? 'IPV4' : 'IPv6'} ${line.host.address}`
     ];
     if(isEndlessClose(line)) {
