@@ -1,0 +1,29 @@
+version: '3.7'
+
+services:
+  endlessh-notify:
+    image: foxxmd/endlessh-notify
+    container_name: endlessh-notify
+    environment:
+      - TZ=Etc/GMT # Specify timezone from TZ Database name found here https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
+
+      #- DEBOUNCE_INTERVAL='24 hours'
+      #- DISCORD_WEBHOOK=
+      #- MAPQUEST_KEY=
+
+      #- NTFY_URL=
+      #- NTFY_TOPIC=
+      #- NTFY_USER=
+      #- NTFY_PASS
+
+      #- GOTIFY_URL=
+      #- GOTIFY_TOKEN=
+
+      #- PUID=1000 # required if running docker on linux host, see main README Docker setup instructions
+      #- PGID=1000 # required if running docker on linux host, see main README Docker setup instructions
+    volumes:
+      - /path_on_host/endless_logs:/endlessh
+
+      # if using config file
+      #- /path_on_host/endlessh_notify_config/config
+    restart: unless-stopped

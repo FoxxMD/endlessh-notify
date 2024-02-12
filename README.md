@@ -6,6 +6,8 @@
 
 Event notification for [endlessh](https://github.com/skeeto/endlessh) and [endlessh-go](https://github.com/shizunge/endlessh-go)
 
+<img src="/assets/discord.jpg" width="476">
+
 # What Does It Do?
 
 endlessh-notify tails the logs from your endlessh instance and will send notifications using [Discord webhooks](https://support.discord.com/hc/en-us/articles/228383668-Intro-to-Webhooks), [ntfy](https://ntfy.sh/), and [gotify](https://gotify.net/) when any of these events occurs:
@@ -17,7 +19,7 @@ endlessh-notify tails the logs from your endlessh instance and will send notific
 
 # Prerequisites
 
-* A running [endlessh](https://github.com/skeeto/endlessh) or [endlessh-go](https://github.com/shizunge/endlessh-go) instance **file logging enabled.**
+* A running [endlessh](https://github.com/skeeto/endlessh) or [endlessh-go](https://github.com/shizunge/endlessh-go) instance **with file logging enabled.**
   * Access to log files
 * A [Discord webhook](https://support.discord.com/hc/en-us/articles/228383668-Intro-to-Webhooks), running [ntfy](https://ntfy.sh/) instance, or running [gotify](https://gotify.net/) instance
 
@@ -52,7 +54,7 @@ You **must** bind the directory on the host containing the endlessh log files to
 
 #### Config Mount
 
-If you use a [Config file](#configuring-notifiersf) you must bind the directory on the host containing the config file to `/config` in the container
+If you use a [Config file](#configuring-notifiers) you must bind the directory on the host containing the config file to `/config` in the container
 
 * [Using `-v` method for docker](https://docs.docker.com/storage/bind-mounts/#start-a-container-with-a-bind-mount): `-v /path/on/host/config:/config`
 * [Using docker-compose](https://docs.docker.com/compose/compose-file/compose-file-v3/#short-syntax-3): `- /path/on/host/config:/config`
