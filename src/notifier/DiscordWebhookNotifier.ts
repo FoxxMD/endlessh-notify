@@ -4,6 +4,7 @@ import {APIEmbed, AttachmentBuilder, BaseMessageOptions, EmbedBuilder, WebhookCl
 import {DiscordConfig, WebhookPayload} from "../common/infrastructure/webhooks.js";
 import {ErrorWithCause} from "pony-cause";
 import dayjs from "dayjs";
+import {durationToHuman, plainTag} from "../utils/index.js";
 
 export class DiscordWebhookNotifier extends AbstractWebhookNotifier {
 
@@ -40,9 +41,10 @@ export class DiscordWebhookNotifier extends AbstractWebhookNotifier {
         }
         try {
             const embed: APIEmbed = {
-                title: 'New IP Connected',
+                title: payload.log.type === 'accept' ? 'New IP Trapped' : 'New IP Disconnected',
                 url: `https://db-ip.com/${payload.log.host.address}`,
-                description: `${flag}${payload.log.host.address}${geoDesc} <https://www.shodan.io/host/${payload.log.host.address}>`
+                description: plainTag`${flag}${payload.log.host.address}${geoDesc}${payload.log.type === 'accept' ? '' : `\nTrapped for **${durationToHuman(payload.log.duration)}**`}
+<https://www.shodan.io/host/${payload.log.host.address}>`
             };
             if(payload.mapImageData !== undefined) {
                 const name = `mq-${dayjs().unix()}.jpg`;

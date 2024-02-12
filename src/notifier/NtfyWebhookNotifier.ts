@@ -3,6 +3,7 @@ import {Config, publish} from 'ntfy';
 import got from 'got';
 import {Logger} from '@foxxmd/winston';
 import {NtfyConfig, PrioritiesConfig, WebhookPayload} from "../common/infrastructure/webhooks.js";
+import {durationToHuman} from "../utils/index.js";
 
 export class NtfyWebhookNotifier extends AbstractWebhookNotifier {
 
@@ -51,9 +52,9 @@ export class NtfyWebhookNotifier extends AbstractWebhookNotifier {
     doNotify = async (payload: WebhookPayload) => {
         try {
             const req: Config = {
-                message: `IP ${payload.log.host.address} connected`,
+                message: payload.log.type === 'accept' ? `${payload.log.host.address} Trapped` : `${payload.log.host.address} Disconnected after ${durationToHuman(payload.log.duration)}`,
                 topic: this.config.topic,
-                title: 'New IP Connected',
+                title: payload.log.type === 'accept' ? 'New IP Trapped' : 'New IP Disconnected',
                 server: this.config.url,
                 priority: this.priorities[payload.priority],
             };

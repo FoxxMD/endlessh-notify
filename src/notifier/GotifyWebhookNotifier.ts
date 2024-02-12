@@ -3,6 +3,7 @@ import {gotify} from 'gotify';
 import got, {HTTPError} from "got";
 import {Logger} from '@foxxmd/winston';
 import {GotifyConfig, PrioritiesConfig, WebhookPayload} from "../common/infrastructure/webhooks.js";
+import {durationToHuman} from "../utils/index.js";
 
 export class GotifyWebhookNotifier extends AbstractWebhookNotifier {
 
@@ -49,8 +50,8 @@ export class GotifyWebhookNotifier extends AbstractWebhookNotifier {
             await gotify({
                 server: this.config.url,
                 app: this.config.token,
-                message: `New IP ${payload.log.host.address} connected`,
-                title: 'New IP Connected',
+                message: payload.log.type === 'accept' ? `${payload.log.host.address} Trapped` : `${payload.log.host.address} Disconnected after ${durationToHuman(payload.log.duration)}`,
+                title: payload.log.type === 'accept' ? 'New IP Trapped' : 'New IP Disconnected',
                 priority: this.priorities[payload.priority]
             });
             this.logger.debug(`Pushed notification.`);

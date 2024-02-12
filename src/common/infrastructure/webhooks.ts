@@ -21,6 +21,24 @@ export interface PrioritiesConfig {
     error: number
 }
 
+export interface EventTypeCommon {
+    type: 'accept' | 'close'
+    debounceInterval?: string
+    name?: string
+}
+
+export interface EventTypeAccept extends EventTypeCommon {
+    type: 'accept'
+}
+
+export interface EventTypeClose extends EventTypeCommon {
+    type: 'close'
+    minTrappedTime?: string
+    maxTrappedTime?: string
+}
+
+export type EventType = EventTypeAccept | EventTypeClose;
+
 export interface CommonWebhookConfig {
     /**
      * Webhook type. Valid values are:
@@ -36,6 +54,7 @@ export interface CommonWebhookConfig {
      * */
     name?: string
     debounceInterval?: string
+    events?: EventType[]
 }
 
 export interface GotifyConfig extends CommonWebhookConfig {

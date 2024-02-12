@@ -53,6 +53,12 @@
                 "debounceInterval": {
                     "type": "string"
                 },
+                "events": {
+                    "items": {
+                        "$ref": "#/definitions/import(\"/home/foxx/code/endlessh-notifications/src/common/infrastructure/webhooks\",{assert:{\"resolution-mode\":\"import\"}}).EventType"
+                    },
+                    "type": "array"
+                },
                 "name": {
                     "description": "A friendly name used to identify webhook config in logs",
                     "type": "string"
@@ -74,10 +80,72 @@
             ],
             "type": "object"
         },
+        "import(\"/home/foxx/code/endlessh-notifications/src/common/infrastructure/webhooks\",{assert:{\"resolution-mode\":\"import\"}}).EventType": {
+            "anyOf": [
+                {
+                    "$ref": "#/definitions/import(\"/home/foxx/code/endlessh-notifications/src/common/infrastructure/webhooks\",{assert:{\"resolution-mode\":\"import\"}}).EventTypeAccept"
+                },
+                {
+                    "$ref": "#/definitions/import(\"/home/foxx/code/endlessh-notifications/src/common/infrastructure/webhooks\",{assert:{\"resolution-mode\":\"import\"}}).EventTypeClose"
+                }
+            ]
+        },
+        "import(\"/home/foxx/code/endlessh-notifications/src/common/infrastructure/webhooks\",{assert:{\"resolution-mode\":\"import\"}}).EventTypeAccept": {
+            "properties": {
+                "debounceInterval": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "type": {
+                    "enum": [
+                        "accept"
+                    ],
+                    "type": "string"
+                }
+            },
+            "required": [
+                "type"
+            ],
+            "type": "object"
+        },
+        "import(\"/home/foxx/code/endlessh-notifications/src/common/infrastructure/webhooks\",{assert:{\"resolution-mode\":\"import\"}}).EventTypeClose": {
+            "properties": {
+                "debounceInterval": {
+                    "type": "string"
+                },
+                "maxTrappedTime": {
+                    "type": "string"
+                },
+                "minTrappedTime": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "type": {
+                    "enum": [
+                        "close"
+                    ],
+                    "type": "string"
+                }
+            },
+            "required": [
+                "type"
+            ],
+            "type": "object"
+        },
         "import(\"/home/foxx/code/endlessh-notifications/src/common/infrastructure/webhooks\",{assert:{\"resolution-mode\":\"import\"}}).GotifyConfig": {
             "properties": {
                 "debounceInterval": {
                     "type": "string"
+                },
+                "events": {
+                    "items": {
+                        "$ref": "#/definitions/import(\"/home/foxx/code/endlessh-notifications/src/common/infrastructure/webhooks\",{assert:{\"resolution-mode\":\"import\"}}).EventType"
+                    },
+                    "type": "array"
                 },
                 "name": {
                     "description": "A friendly name used to identify webhook config in logs",
@@ -120,6 +188,12 @@
             "properties": {
                 "debounceInterval": {
                     "type": "string"
+                },
+                "events": {
+                    "items": {
+                        "$ref": "#/definitions/import(\"/home/foxx/code/endlessh-notifications/src/common/infrastructure/webhooks\",{assert:{\"resolution-mode\":\"import\"}}).EventType"
+                    },
+                    "type": "array"
                 },
                 "name": {
                     "description": "A friendly name used to identify webhook config in logs",

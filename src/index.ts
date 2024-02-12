@@ -96,9 +96,7 @@ const configDir = process.env.CONFIG_DIR || path.resolve(projectDir, `./config`)
                 throw err;
             });
             parser.on('line', async (line) => {
-                if (line.type === 'accept') {
-                    logLinesQueue.push(line);
-                }
+                logLinesQueue.push(line);
             });
             processLineQueue();
             processEndlessLog()
