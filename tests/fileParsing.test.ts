@@ -61,12 +61,6 @@ describe('Log File Interaction', function () {
         describe('Existing log contents', function() {
             for(const {name, util} of endlessFlavors) {
                 const fileName = `/${util.fileName}`;
-            }
-        });
-
-        describe('Existing log contents', function() {
-            for(const {name, util} of endlessFlavors) {
-                const fileName = `/${util.fileName}`;
 
                 it(`Ignores existing log contents (${name})`, async function () {
                     fs.writeFileSync(fileName, util.log());
