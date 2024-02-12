@@ -176,6 +176,7 @@ export const parseConfigFromEnv = (): OperatorJsonConfig => {
             level: process.env.LOG_LEVEL as (LogLevel | undefined)
         },
         endlessDir: process.env.ENDLESS_DIR,
+        mapquestKey: process.env.MAPQUEST_KEY,
         notifiers
     }
 }

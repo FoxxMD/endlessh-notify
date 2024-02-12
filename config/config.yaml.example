@@ -1,4 +1,18 @@
+#mapquestKey: 'MY_KEY' #optional! sign up at https://developer.mapquest.com/documentation/
+endlessDir: '/endlessh' # don't change if using docker
 notifiers:
   - type: 'discord'
     webhook: 'https://discord.com/api/webhooks/MY_WEBHOOK'
-mapquestKey: 'MY_KEY'
+    debounceInterval: '24 hours'
+  - type: 'ntfy'
+
+    url: 'http://myDomain.tld'
+    topic: 'RvOwKJ1XtIVMXGLR'
+    username: 'myUser'
+    password: 'myPass'
+    debounceInterval: '12 hours'
+
+  - type: 'gotify'
+    url: 'http://myDomain.tld'
+    token: 'AQZI58fA.rfSZbm'
+    debounceInterval: '6 hours'
