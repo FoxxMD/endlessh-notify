@@ -168,6 +168,16 @@ export const plainTag = new TemplateTag(
     trimResultTransformer()
 );
 
+// https://github.com/zspecza/common-tags/issues/176#issuecomment-1650242734
+export const doubleReturnNewline = new TemplateTag(
+    stripIndentTransformer('all'),
+    // remove instances of single line breaks
+    replaceResultTransformer(/(?<=.)\n(?!\n+)/g, ''),
+    // replace instances of two or more line breaks with one line break
+    replaceResultTransformer(/(?<=.)\n{2,}/g, '\n'),
+    trimResultTransformer(),
+);
+
 export const truncateStringToLength = (length: any, truncStr = '...') => (val: any = '') =>  {
     if(val === null) {
         return '';

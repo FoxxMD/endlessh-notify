@@ -1,10 +1,10 @@
-import { AbstractWebhookNotifier } from "./AbstractWebhookNotifier.js";
+import {AbstractWebhookNotifier} from "./AbstractWebhookNotifier.js";
 import {Logger} from '@foxxmd/winston';
-import {APIEmbed, AttachmentBuilder, BaseMessageOptions, EmbedBuilder, WebhookClient} from "discord.js";
+import {APIEmbed, AttachmentBuilder, BaseMessageOptions, EmbedBuilder, WebhookClient, time} from "discord.js";
 import {DiscordConfig, WebhookPayload} from "../common/infrastructure/webhooks.js";
 import {ErrorWithCause} from "pony-cause";
 import dayjs from "dayjs";
-import {durationToHuman, plainTag} from "../utils/index.js";
+import {doubleReturnNewline, durationToHuman, plainTag} from "../utils/index.js";
 
 export class DiscordWebhookNotifier extends AbstractWebhookNotifier {
 
@@ -32,21 +32,13 @@ export class DiscordWebhookNotifier extends AbstractWebhookNotifier {
     }
 
     doNotify = async (payload: WebhookPayload) => {
-        let flag = '';
-        let geoDesc = '';
+
         let files: AttachmentBuilder[] = [];
-        if(payload.log.geo !== undefined) {
-            flag = `:flag_${payload.log.geo.countryCode.toLowerCase()}: `;
-            geoDesc = ` from ${payload.log.geo?.city}, ${payload.log.geo?.country} (${payload.log.geo?.isp})`
-        }
         try {
-            const embed: APIEmbed = {
-                title: payload.log.type === 'accept' ? 'New IP Trapped' : 'New IP Disconnected',
-                url: `https://db-ip.com/${payload.log.host.address}`,
-                description: plainTag`${flag}${payload.log.host.address}${geoDesc}${payload.log.type === 'accept' ? '' : `\nTrapped for **${durationToHuman(payload.log.duration)}**`}
-<https://www.shodan.io/host/${payload.log.host.address}>`
-            };
-            if(payload.mapImageData !== undefined) {
+
+            const embed = DiscordWebhookNotifier.generateEmbed(payload);
+
+            if (payload.mapImageData !== undefined) {
                 const name = `mq-${dayjs().unix()}.jpg`;
                 const file = new AttachmentBuilder(payload.mapImageData, {name});
                 embed.image = {url: `attachment://${name}`};
@@ -58,6 +50,35 @@ export class DiscordWebhookNotifier extends AbstractWebhookNotifier {
         } catch (e: any) {
             this.logger.error(new ErrorWithCause(`Failed to push notification`, {cause: e}));
             return false;
+        }
+    }
+
+
+    public static generateEmbed(payload: WebhookPayload): APIEmbed {
+        let flag = '';
+        let geoDesc = '';
+
+        if (payload.log.geo !== undefined) {
+            flag = `:flag_${payload.log.geo.countryCode.toLowerCase()}: `;
+            geoDesc = ` from ${payload.log.geo?.city}, ${payload.log.geo?.country} (${payload.log.geo?.isp})`
+        }
+
+        try {
+            const trapped = payload.log.type === 'accept' ? '' : `\nTrapped for **${durationToHuman(payload.log.duration)}**`;
+            const firstTrapped = payload.log.type === 'accept' ? '' : `\nFirst Seen At: ${time(dayjs().subtract(payload.log.duration.asMilliseconds(), 'ms').toDate())}`
+            const embed: APIEmbed = {
+                title: payload.log.type === 'accept' ? 'Endlessh/IP Trapped' : 'Endlessh/IP Disconnected',
+                url: `https://db-ip.com/${payload.log.host.address}`,
+                description: doubleReturnNewline`
+${flag}${payload.log.host.address}${geoDesc}
+${trapped}
+${firstTrapped}
+
+<https://www.shodan.io/host/${payload.log.host.address}>`
+            }
+            return embed;
+        } catch (e) {
+            throw new ErrorWithCause('Unexpected error occurred while generated discord embed contents', {cause: e});
         }
     }
 }
