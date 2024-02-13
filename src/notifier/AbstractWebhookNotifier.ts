@@ -7,14 +7,12 @@ import TTLCache from '@isaacs/ttlcache';
 import dayjs, {Dayjs} from "dayjs";
 import {EndlessCloseLogLine} from "../common/infrastructure/Atomic.js";
 
-interface HashedEventTypeAccept extends Omit<EventTypeAccept, 'debounceInterval'> {
-    hash: string
+interface HydratedEventTypeAccept extends Omit<EventTypeAccept, 'debounceInterval'> {
     debounceInterval: Duration
     cache: TTLCache<string, Dayjs>
     logger: Logger
 }
-interface HashedEventTypeClose extends Omit<EventTypeClose, 'debounceInterval' | 'minTrappedTime' | 'maxTrappedTime'> {
-    hash: string
+interface HydratedEventTypeClose extends Omit<EventTypeClose, 'debounceInterval' | 'minTrappedTime' | 'maxTrappedTime'> {
     debounceInterval: Duration
     cache: TTLCache<string, Dayjs>
     logger: Logger
@@ -35,8 +33,8 @@ export abstract class AbstractWebhookNotifier {
     ttl: Duration;
     cache: TTLCache<string, Dayjs>
 
-    acceptEvents: HashedEventTypeAccept[] = [];
-    closeEvents: HashedEventTypeClose[] = [];
+    acceptEvents: HydratedEventTypeAccept[] = [];
+    closeEvents: HydratedEventTypeClose[] = [];
 
     protected constructor(notifierType: string, defaultName: string, config: WebhookConfig, logger: Logger) {
         this.config = config;
@@ -62,31 +60,32 @@ export abstract class AbstractWebhookNotifier {
                 name,
             } = e;
             let eventName: string | number = name;
-            if(eventName === undefined) {
-                if(eventType === 'accept') {
-                    eventName = acceptIndex;
-                } else {
-                    eventName = closeIndex;
-                }
+            if(eventType === 'accept') {
+                eventName = `ACCEPT ${name ?? acceptIndex}`;
+            } else {
+                eventName = `CLOSE ${name ?? closeIndex}`;
             }
             const durStr = debounceInterval ?? this.ttlStr;
             let dur: Duration;
             try {
                 dur = parseDuration(durStr);
             } catch (e) {
-                throw new ErrorWithCause(`Unable to parse debounceInterval for ${notifierType} ${eventType} ${eventName} -  => ${debounceInterval}`, {cause: e});
+                throw new ErrorWithCause(`Unable to parse debounceInterval for ${notifierType} ${eventName} -  => ${debounceInterval}`, {cause: e});
             }
             const eventConfig: any  = {
                 type: eventType,
+                name: eventName,
                 debounceInterval: durStr
             }
             if(eventType === 'accept') {
-                this.acceptEvents.push({
+                const hAcceptEvent: HydratedEventTypeAccept = {
                     ...eventConfig,
                     debounceInterval: dur,
                     cache: new TTLCache<string, Dayjs>({ max: 500, ttl: dur.asMilliseconds()}),
                     logger: this.logger.child({labels: [`Accept ${name ?? acceptIndex}`]}, mergeArr)
-                });
+                };
+                this.acceptEvents.push(hAcceptEvent);
+                this.logger.info(eventTypeSummary(hAcceptEvent));
                 acceptIndex++;
             } else {
                 const {
@@ -97,22 +96,24 @@ export abstract class AbstractWebhookNotifier {
                     try {
                         eventConfig.minTrappedTime = parseDuration(minTrappedTime);
                     } catch (err) {
-                        throw new ErrorWithCause(`Unable to parse minTrappedTime for ${notifierType} ${eventType} ${eventName} -  => ${minTrappedTime}`, {cause: e});
+                        throw new ErrorWithCause(`Unable to parse minTrappedTime for ${notifierType} ${eventName} -  => ${minTrappedTime}`, {cause: e});
                     }
                 }
                 if(maxTrappedTime !== undefined) {
                     try {
                         eventConfig.maxTrappedTime = parseDuration(maxTrappedTime);
                     } catch (err) {
-                        throw new ErrorWithCause(`Unable to parse maxTrappedTime for ${notifierType} ${eventType} ${eventName} -  => ${maxTrappedTime}`, {cause: e});
+                        throw new ErrorWithCause(`Unable to parse maxTrappedTime for ${notifierType} ${eventName} -  => ${maxTrappedTime}`, {cause: e});
                     }
                 }
-                this.closeEvents.push({
+                const hCloseEvent: HydratedEventTypeClose = {
                     ...eventConfig,
                     debounceInterval: dur,
                     cache: new TTLCache<string, Dayjs>({ max: 500, ttl: dur.asMilliseconds()}),
                     logger: this.logger.child({labels: [`Close ${name ?? acceptIndex}`]}, mergeArr)
-                });
+                };
+                this.closeEvents.push(hCloseEvent);
+                this.logger.info(eventTypeSummary(hCloseEvent))
                 closeIndex++;
             }
 
@@ -177,4 +178,28 @@ export abstract class AbstractWebhookNotifier {
         return;
     }
     abstract doNotify: (payload: WebhookPayload) => Promise<boolean>;
+}
+
+const eventTypeSummary = (et: HydratedEventTypeAccept | HydratedEventTypeClose): string => {
+    const parts: string[] = [`Event ${et.name} -- notify if =>`];
+    const filters: string[] = [];
+    if(isHydratedEventTypeClose(et)) {
+        if(et.minTrappedTime !== undefined) {
+            filters.push(`Trapped at LEAST ${durationToHuman(et.minTrappedTime)}`);
+        }
+        if(et.maxTrappedTime !== undefined) {
+            filters.push(`Trapped at MOST ${durationToHuman(et.maxTrappedTime)}`);
+        }
+    }
+    filters.push(`New or last seen longer than ${durationToHuman(et.debounceInterval)} ago`);
+    parts.push(filters.join(' AND '))
+    return `${parts.join(' ')}`
+}
+
+const isHydratedEventTypeClose = (et: HydratedEventTypeAccept | HydratedEventTypeClose): et is HydratedEventTypeClose => {
+    return et.type === 'close';
+}
+
+const isHydratedEventTypeAccept = (et: HydratedEventTypeAccept | HydratedEventTypeClose): et is HydratedEventTypeAccept => {
+    return et.type === 'accept';
 }
