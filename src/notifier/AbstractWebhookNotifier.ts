@@ -43,7 +43,7 @@ export abstract class AbstractWebhookNotifier {
         const label = `${type} - ${config.name ?? defaultName}`
         this.logger = logger.child({labels: [label]}, mergeArr);
         try {
-            this.ttlStr = config.debounceInterval ?? '1 hour';
+            this.ttlStr = config.debounceInterval ?? '1 day';
             this.ttl = parseDuration(this.ttlStr);
         } catch (e) {
             throw new ErrorWithCause(`Unable to parse debounceInterval for ${type} - ${defaultName} => ${config.debounceInterval}`, {cause: e});

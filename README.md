@@ -140,7 +140,7 @@ Common behavior that can be defined for all notifiers:
 
 #### Debounce Interval
 
-This duration determines how "old" a previously seen IP must be before it is considered "new". If an IP has not been seen before it is always new. The default is `1 hour`.
+This duration determines how "old" a previously seen IP must be before it is considered "new". If an IP has not been seen before it is always new. The default is `1 day`.
 
 The syntax for a duration is `[Value] [Unit]` where unit is any [available unit from Dayjs](https://day.js.org/docs/en/durations/creating#list-of-all-available-units), examples:
 
