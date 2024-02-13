@@ -22,16 +22,16 @@ export const getIpGeolocation = async (ip: string, fields?: IPDataFields[keyof I
 
 
 
-interface IPDataResponse extends IPDataFields {
+export interface IPDataResponse extends IPDataFields {
     /**
      * Whether the request was successful
      */
     status: "success" | 'fail'
 
-    message: 'private range' | 'reserved range' | 'invalid query'
+    message?: 'private range' | 'reserved range' | 'invalid query'
 }
 
 export const defaultApiApiQuery = {
-    fields: ['status','message','country','countryCode','regionName','city','lat','lon','isp'],
-    numeric: 49881
+    fields: ['status','message','country','countryCode','region','regionName','city','lat','lon','isp'],
+    numeric: 49887
 }
