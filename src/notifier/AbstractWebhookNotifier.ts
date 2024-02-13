@@ -52,12 +52,15 @@ export abstract class AbstractWebhookNotifier {
         } = config;
         if(events.length === 0) {
             // First try to get events to use from ENV
-            const envEvents = (process.env.NOTIFY_EVENTS ?? '').split(',').map(x => x.toLocaleLowerCase().trim());
-            for(const eType of envEvents) {
-                if(['close', 'accept'].includes(eType)) {
-                    throw new ErrorWithCause(`Event type specified in NOTIFY_EVENTS was not valid => ${eType}`);
+            const envStr = process.env.NOTIFY_EVENTS;
+            if(envStr !== undefined && envStr.trim() !== '') {
+                const envEvents = envStr.split(',').map(x => x.toLocaleLowerCase().trim());
+                for(const eType of envEvents) {
+                    if(['close', 'accept'].includes(eType)) {
+                        throw new ErrorWithCause(`Event type specified in NOTIFY_EVENTS was not valid => ${eType}`);
+                    }
+                    events.push({type: eType as 'close' | 'accept'});
                 }
-                events.push({type: eType as 'close' | 'accept'});
             }
         }
         if(events.length === 0) {
