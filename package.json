@@ -26,6 +26,7 @@
     "@isaacs/ttlcache": "^1.4.1",
     "@logdna/tail-file": "^3.0.1",
     "ajv": "^8.12.0",
+    "async": "^3.2.5",
     "common-tags": "^1.8.2",
     "dayjs": "^1.11.10",
     "deepmerge": "^4.3.1",
@@ -50,6 +51,7 @@
   "devDependencies": {
     "@aleung/fs-monkey": "^1.1.1",
     "@faker-js/faker": "^8.4.1",
+    "@types/async": "^3.2.24",
     "@types/chai": "^4.3.11",
     "@types/chai-as-promised": "^7.1.8",
     "@types/mocha": "^10.0.6",

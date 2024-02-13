@@ -12,10 +12,8 @@ import {ErrorWithCause} from "pony-cause";
 import {parseConfigFromSources} from "./common/config/ConfigBuilder.js";
 import {Notifiers} from "./notifier/Notifiers.js";
 import {EndlessFileParser} from "./EndlessFileParser.js";
-import {EndlessLog, EndlessLogLine, IPDataFields} from "./common/infrastructure/Atomic.js";
-import {GeoLookup} from "./GeoLookup.js";
-import {sleep} from "./utils/index.js";
 import {pEvent} from "p-event";
+import {GeoQueue} from "./GeoQueue.js";
 
 dayjs.extend(utc)
 dayjs.extend(isBetween);
@@ -53,42 +51,10 @@ const configDir = process.env.CONFIG_DIR || path.resolve(projectDir, `./config`)
         const notifiers = new Notifiers(logger, config.mapquestKey);
         await notifiers.buildWebhooks(config.notifiers);
 
-        const lookup = new GeoLookup(logger);
-
-        const logLinesQueue: EndlessLogLine[] = [];
-        const endlessLogQueue: EndlessLog[] = [];
-
-        const processLineQueue = async () => {
-            while (true) {
-                if (logLinesQueue.length > 0) {
-                    const line = logLinesQueue.shift();
-                    let geo: IPDataFields | undefined;
-                    try {
-                        geo = await lookup.getInfo(line.host);
-                    } catch (e) {
-                        logger.warn(e);
-                    }
-                    endlessLogQueue.push({...line, geo});
-                }
-                await sleep(1500);
-            }
-        }
-
-        const processEndlessLog = async () => {
-            while (true) {
-                if (endlessLogQueue.length > 0) {
-                    const log = endlessLogQueue.shift();
-                    const anySent = await notifiers.notify({log, priority: 'info'});
-                    if (anySent) {
-                        await sleep(3000);
-                    } else {
-                        await sleep(1000);
-                    }
-                } else {
-                    await sleep(1000);
-                }
-            }
-        }
+        const geoQueue = new GeoQueue(logger);
+        geoQueue.on('log', async (log) => {
+           await notifiers.push(log);
+        });
 
         try {
             const parser = await EndlessFileParser.fromFile(config.endlessDir, logger);
@@ -96,17 +62,13 @@ const configDir = process.env.CONFIG_DIR || path.resolve(projectDir, `./config`)
                 throw err;
             });
             parser.on('line', async (line) => {
-                logLinesQueue.push(line);
+                await geoQueue.push(line);
             });
-            processLineQueue();
-            processEndlessLog()
             await parser.start();
             await pEvent(parser, 'close');
         } catch (e) {
             throw e;
         }
-
-        const f = 1;
     } catch (e) {
         initLogger.error('Exited with uncaught error');
         initLogger.error(e);

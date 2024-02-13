@@ -80,7 +80,7 @@ To get the UID and GID for the current user run these commands from a terminal:
 Assuming
 
 * Host UID is `99`
-* Host GID is `1000`
+* Host GID is `100`
 * Config using ENV
 * Discord with Mapquest
 * Logs at `/home/myUser/endlessLogs`

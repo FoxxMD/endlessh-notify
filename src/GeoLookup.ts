@@ -11,7 +11,7 @@ export class GeoLookup {
     logger: Logger
 
     constructor(logger: Logger) {
-        this.logger = logger.child({labels: ['GeoLookup']}, mergeArr)
+        this.logger = logger.child({labels: ['Geo Lookup']}, mergeArr)
 
     }
 
