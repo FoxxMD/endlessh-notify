@@ -13,7 +13,7 @@ Event notification for [endlessh](https://github.com/skeeto/endlessh) and [endle
 endlessh-notify tails the logs from your endlessh instance and will send notifications using [Discord webhooks](https://support.discord.com/hc/en-us/articles/228383668-Intro-to-Webhooks), [ntfy](https://ntfy.sh/), and [gotify](https://gotify.net/) when any of these events occurs:
 
 * New* IP tries to connect
-* New* IP disconnect (coming soon)
+* New* IP disconnect
 
 *You can control how an IP is considered "new" based on when it was last seen.
 
@@ -138,7 +138,7 @@ Notifiers can be configured with
 
 Common behavior that can be defined for all notifiers:
 
-#### Debounce Interval
+### Debounce Interval
 
 This duration determines how "old" a previously seen IP must be before it is considered "new". If an IP has not been seen before it is always new. The default is `1 day`.
 
@@ -152,6 +152,23 @@ Debounce can be configured:
 
 * For all notifiers using ENV => Set with `DEBOUNCE_INTERVAL` env IE `DEBOUNCE_INTERVAL="6 hours"`
 * Per notifier using a config file => sSee [`config.yaml` example](/config/config.yaml.example)
+
+### Event Types
+
+Each notifier can be configured to notify on one or many **Events.** An Event can be:
+
+* **Accept** -- When an IP establishes a connection with endlessh
+* **Close** -- When an IP disconnects from endlessh
+
+For notifiers that **do not have any events configured via a config file** the type of events that are notified can be configured through ENV:
+
+```
+NOTIFY_EVENTS=accept,close
+```
+
+To control behavior for individual notifiers or event behavior use a file config, see [`config.yaml` example](/config/config.yaml.example)
+
+Additionally, **Close** type events can be filtered based on the max/min trapped time of the IP.
 
 ## Specific Notifiers
 
