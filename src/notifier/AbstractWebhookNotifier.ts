@@ -38,15 +38,15 @@ export abstract class AbstractWebhookNotifier {
     acceptEvents: HashedEventTypeAccept[] = [];
     closeEvents: HashedEventTypeClose[] = [];
 
-    protected constructor(type: string, defaultName: string, config: WebhookConfig, logger: Logger) {
+    protected constructor(notifierType: string, defaultName: string, config: WebhookConfig, logger: Logger) {
         this.config = config;
-        const label = `${type} - ${config.name ?? defaultName}`
+        const label = `${notifierType} - ${config.name ?? defaultName}`
         this.logger = logger.child({labels: [label]}, mergeArr);
         try {
             this.ttlStr = config.debounceInterval ?? '1 day';
             this.ttl = parseDuration(this.ttlStr);
         } catch (e) {
-            throw new ErrorWithCause(`Unable to parse debounceInterval for ${type} - ${defaultName} => ${config.debounceInterval}`, {cause: e});
+            throw new ErrorWithCause(`Unable to parse debounceInterval for ${notifierType} - ${defaultName} => ${config.debounceInterval}`, {cause: e});
         }
 
         const {
@@ -63,7 +63,7 @@ export abstract class AbstractWebhookNotifier {
             } = e;
             let eventName: string | number = name;
             if(eventName === undefined) {
-                if(type === 'accept') {
+                if(eventType === 'accept') {
                     eventName = acceptIndex;
                 } else {
                     eventName = closeIndex;
@@ -74,13 +74,13 @@ export abstract class AbstractWebhookNotifier {
             try {
                 dur = parseDuration(durStr);
             } catch (e) {
-                throw new ErrorWithCause(`Unable to parse debounceInterval for ${type} ${eventType} ${eventName} -  => ${debounceInterval}`, {cause: e});
+                throw new ErrorWithCause(`Unable to parse debounceInterval for ${notifierType} ${eventType} ${eventName} -  => ${debounceInterval}`, {cause: e});
             }
             const eventConfig: any  = {
-                type,
+                type: eventType,
                 debounceInterval: durStr
             }
-            if(type === 'accept') {
+            if(eventType === 'accept') {
                 this.acceptEvents.push({
                     ...eventConfig,
                     debounceInterval: dur,
@@ -97,14 +97,14 @@ export abstract class AbstractWebhookNotifier {
                     try {
                         eventConfig.minTrappedTime = parseDuration(minTrappedTime);
                     } catch (err) {
-                        throw new ErrorWithCause(`Unable to parse minTrappedTime for ${type} ${eventType} ${eventName} -  => ${minTrappedTime}`, {cause: e});
+                        throw new ErrorWithCause(`Unable to parse minTrappedTime for ${notifierType} ${eventType} ${eventName} -  => ${minTrappedTime}`, {cause: e});
                     }
                 }
                 if(maxTrappedTime !== undefined) {
                     try {
                         eventConfig.maxTrappedTime = parseDuration(maxTrappedTime);
                     } catch (err) {
-                        throw new ErrorWithCause(`Unable to parse maxTrappedTime for ${type} ${eventType} ${eventName} -  => ${maxTrappedTime}`, {cause: e});
+                        throw new ErrorWithCause(`Unable to parse maxTrappedTime for ${notifierType} ${eventType} ${eventName} -  => ${maxTrappedTime}`, {cause: e});
                     }
                 }
                 this.closeEvents.push({
@@ -143,35 +143,38 @@ export abstract class AbstractWebhookNotifier {
                 const lastSeen = event.cache.get(payload.log.host.address);
                 if(lastSeen !== undefined) {
                     event.logger.debug(`Not sending notification because IP was seen less than TTL (${durationToHuman(dayjs.duration(dayjs().diff(lastSeen)))} ago)`);
-                    return;
+                    continue;
                 }
                 const res = await this.doNotify(payload);
                 if(res) {
                     event.cache.set(payload.log.host.address, dayjs());
                 }
+                return res;
             }
         } else {
             const log = payload.log as EndlessCloseLogLine;
             for(const event of this.closeEvents) {
                 if(event.minTrappedTime !== undefined && log.duration < event.minTrappedTime) {
                     event.logger.debug(`Not sending notification because trapped time was less than minTrappedTime`);
-                    return;
+                    continue;
                 }
                 if(event.maxTrappedTime !== undefined && log.duration > event.maxTrappedTime) {
                     event.logger.debug(`Not sending notification because trapped time was more than maxTrappedTime`);
-                    return;
+                    continue;
                 }
                 const lastSeen = event.cache.get(payload.log.host.address);
                 if(lastSeen !== undefined) {
                     event.logger.debug(`Not sending notification because IP was seen less than TTL ago (${durationToHuman(dayjs.duration(dayjs().diff(lastSeen)))} ago)`);
-                    return;
+                    continue;
                 }
                 const res = await this.doNotify(payload);
                 if(res) {
                     event.cache.set(payload.log.host.address, dayjs());
                 }
+                return res;
             }
         }
+        return;
     }
     abstract doNotify: (payload: WebhookPayload) => Promise<boolean>;
 }
