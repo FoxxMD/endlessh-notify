@@ -289,9 +289,14 @@ export const parseEndlessLogLine = (line: string): EndlessLogLine | undefined =>
             } catch (e) {
                 throw new ErrorWithCause('Could not parse log line', {cause: e});
             }
+            const derivedTs = `${res.named.year ?? dayjs().year()}-${res.named.month}-${res.named.day}T${res.named.time}`;
+            const time = dayjs(derivedTs, {utc: false}, true);
+            if(!time.isValid()) {
+                throw new ErrorWithCause(`Derived timestamp '${derivedTs}' did not produce a valid datetime`);
+            }
             return {
                 type: 'accept',
-                time: dayjs(`${res.named.year ?? dayjs().year()}-${res.named.month}-${res.named.day}T${res.named.time}`, {utc: false}),
+                time: time,
                 host: address
             }
         }
@@ -306,11 +311,20 @@ export const parseEndlessLogLine = (line: string): EndlessLogLine | undefined =>
             } catch (e) {
                 throw new ErrorWithCause('Could not parse log line', {cause: e});
             }
+            const derivedTs = `${res.named.year ?? dayjs().year()}-${res.named.month}-${res.named.day}T${res.named.time}`;
+            const time = dayjs(derivedTs, {utc: false}, true);
+            if(!time.isValid()) {
+                throw new ErrorWithCause(`Derived timestamp '${derivedTs}' did not produce a valid datetime`);
+            }
+            const durFloat = Number.parseFloat(res.named.duration);
+            if(Number.isNaN(durFloat)) {
+                throw new ErrorWithCause(`Trapped time value was not a valid number: ${res.named.duration}`);
+            }
             return {
                 type: 'close',
-                time: dayjs(`${res.named.year ?? dayjs().year()}-${res.named.month}-${res.named.day}T${res.named.time}`, {utc: false}),
+                time: time,
                 host: address,
-                duration: dayjs.duration(Number.parseFloat(res.named.duration), 's')
+                duration: dayjs.duration(durFloat, 's')
             }
         }
     }
@@ -322,6 +336,9 @@ export const parseToAddress = (val: string): Address4 | Address6 => {
     let address: Address6 | Address4;
     if (Address4.isValid(val)) {
         address = new Address4(val);
+        if(address.parsedSubnet !== '') {
+            throw new ErrorWithCause(`Address must not have a subnet suffixed! ${val}`);
+        }
     } else if (Address6.isValid(val)) {
         address = new Address6(val)
     } else {
