@@ -83,7 +83,7 @@ export class Notifiers {
         for (const webhook of this.webhooks) {
 
             let imageData: Buffer | undefined;
-            if (webhook instanceof DiscordWebhookNotifier && this.mapquestKey !== undefined && payload.log.geo !== undefined) {
+            if (webhook instanceof DiscordWebhookNotifier && payload.log.geo !== undefined) {
                 imageData = await this.getMapquestImage(payload.log.geo.lat, payload.log.geo.lon);
             }
 
@@ -96,21 +96,34 @@ export class Notifiers {
     }
 
     getMapquestImage = async (lat: number, long: number): Promise<Buffer | undefined> => {
+        if(this.mapquestKey === undefined) {
+            return undefined;
+        }
+
         const latlong = `${lat.toString()},${long.toString()}`;
         let data = this.imageCache.get(latlong);
         if (data === undefined) {
             try {
-                this.logger.debug(`Getting Mapquest Image => https://www.mapquestapi.com/staticmap/v5/map?center=${latlong}&size=500,300}`);
-                data = await got.get(`https://www.mapquestapi.com/staticmap/v5/map?center=${latlong}&size=500,300&key=${this.mapquestKey}`).buffer();
+                data = await this.fetchMapquestImage(lat, long);
                 this.imageCache.set(latlong, data);
             } catch (e) {
-                this.logger.warn(new ErrorWithCause(`Failed to get mapquest image for ${latlong}`, {cause: e}));
+                this.logger.warn(e);
                 return undefined;
             }
         } else {
             this.logger.debug(`Got cached image data for ${latlong}`)
         }
         return data;
+    }
+
+    async fetchMapquestImage(lat: number, long: number): Promise<Buffer | undefined> {
+        const latlong = `${lat.toString()},${long.toString()}`;
+        try {
+            this.logger.debug(`Getting Mapquest Image => https://www.mapquestapi.com/staticmap/v5/map?center=${latlong}&size=500,300}`);
+            return await got.get(`https://www.mapquestapi.com/staticmap/v5/map?center=${latlong}&size=500,300&key=${this.mapquestKey}`).buffer();
+        } catch (e) {
+            throw new ErrorWithCause(`Failed to get mapquest image for ${latlong}`, {cause: e})
+        }
     }
 
     protected generateQueue() {

@@ -29,6 +29,9 @@ const oneVal: IPDataResponse = {
 }
 
 it('Uses cache for repeat addresses', async function () {
+    after(function() {
+        sinon.restore();
+    });
     const lookup = new GeoLookup(logger);
 
     const fake = sinon.replace(lookup, 'fetchExternalGeolocation', sinon.fake.returns(Promise.resolve(oneVal)))
