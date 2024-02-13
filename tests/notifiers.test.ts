@@ -8,6 +8,7 @@ import {WebhookConfig, WebhookPayload} from '../src/common/infrastructure/webhoo
 import dayjs from "dayjs";
 import {Address4} from "ip-address";
 import {sleep} from "../src/utils/index.js";
+import {DiscordWebhookNotifier} from "../src/notifier/DiscordWebhookNotifier.js";
 
 const {loggers} = winstonDef;
 const logger = loggers.get('noop');
@@ -284,4 +285,18 @@ describe('CLOSE Notifiers', function () {
         });
     });
 
+});
+
+describe('Discord', function() {
+   it('generates expected ACCEPT embed', function () {
+       const embed = DiscordWebhookNotifier.generateEmbed(payloadAccept);
+       assert.equal(embed.title,'Endlessh/IP Trapped')
+       assert.isFalse(new RegExp(/Trapped for \*\*/i).test(embed.description));
+   });
+    it('generated expected CLOSE embed', function () {
+        const embed = DiscordWebhookNotifier.generateEmbed(payloadClose);
+        assert.equal(embed.title,'Endlessh/IP Disconnected')
+        assert.isTrue(new RegExp(/Trapped for \*\*/i).test(embed.description));
+        assert.isTrue(new RegExp(/First Seen At:/i).test(embed.description));
+    });
 });
