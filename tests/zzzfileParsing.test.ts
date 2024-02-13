@@ -21,13 +21,18 @@ const {loggers} = winstonDef;
 
 const vol = new Volume();
 const fs = createFsFromVolume(vol);
-patchFs(vol);
+const unpatch = patchFs(vol);
 
 const logger = loggers.get('noop');
 
 const endlessFlavors = [{name: 'endlessh', util: endlessh}, {name: 'endless-go', util: endlesshGo}];
 
 describe('Log File Interaction', function () {
+
+    // TODO don't use patching...its problematic
+    after(function () {
+        unpatch();
+    });
 
     describe('File Handling', function() {
         beforeEach(function () {
