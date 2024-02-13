@@ -27,8 +27,12 @@ notifiers:
     username: 'myUser'
     password: 'myPass'
     debounceInterval: '12 hours'
+    # will notify for accept and close since none are specified
 
   - type: 'gotify'
     url: 'http://myDomain.tld'
     token: 'AQZI58fA.rfSZbm'
     debounceInterval: '6 hours'
+    events:
+      - type: 'close'
+        maxTrappedTime: '1 minute' # only notify for IPs trapped under one minute

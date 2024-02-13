@@ -47,11 +47,11 @@ export abstract class AbstractWebhookNotifier {
             throw new ErrorWithCause(`Unable to parse debounceInterval for ${notifierType} - ${defaultName} => ${config.debounceInterval}`, {cause: e});
         }
 
-        // NOTIFY_EVENTS=accept,close
         const {
             events = []
         } = config;
         if(events.length === 0) {
+            // First try to get events to use from ENV
             const envEvents = (process.env.NOTIFY_EVENTS ?? '').split(',').map(x => x.toLocaleLowerCase().trim());
             for(const eType of envEvents) {
                 if(['close', 'accept'].includes(eType)) {
@@ -59,6 +59,11 @@ export abstract class AbstractWebhookNotifier {
                 }
                 events.push({type: eType as 'close' | 'accept'});
             }
+        }
+        if(events.length === 0) {
+            // if still no events then notify on all
+            events.push({type: 'accept'});
+            events.push({type: 'close'});
         }
 
         let acceptIndex = 0;
