@@ -6,6 +6,7 @@ import {ErrorWithCause} from "pony-cause";
 import dayjs from "dayjs";
 import {doubleReturnNewline, durationToHuman, plainTag} from "../utils/index.js";
 import {MapImageService} from "../MapImageService.js";
+import * as https from "https";
 
 export class DiscordWebhookNotifier extends AbstractWebhookNotifier {
 
@@ -71,15 +72,19 @@ export class DiscordWebhookNotifier extends AbstractWebhookNotifier {
         }
 
         try {
-            const trapped = payload.log.type === 'accept' ? '' : `\nTrapped for **${durationToHuman(payload.log.duration)}**`;
-            const firstTrapped = payload.log.type === 'accept' ? '' : `\nFirst Seen At: ${time(dayjs().subtract(payload.log.duration.asMilliseconds(), 'ms').toDate())}`
+            const trappedFor = payload.log.type === 'accept' ? '' : `\nTrapped for **${durationToHuman(payload.log.duration)}**`;
+            const trappedAt = payload.log.type === 'accept' ? '' : `\nTrapped At: ${time(dayjs().subtract(payload.log.duration.asMilliseconds(), 'ms').toDate())}`
+            const totalTrappedFor = payload.log.type === 'accept' ? '' : `\nTotal Trapped Time: **${durationToHuman(payload.log.stats.time)}**`
+            const firstSeenAt = `\nFirst Seen At: ${time(payload.log.stats.firstSeen.toDate())}`
             const embed: APIEmbed = {
                 title: payload.log.type === 'accept' ? 'Endlessh/IP Trapped' : 'Endlessh/IP Disconnected',
                 url: `https://db-ip.com/${payload.log.host.address}`,
                 description: doubleReturnNewline`
 ${flag}${payload.log.host.address}${geoDesc}
-${trapped}
-${firstTrapped}
+${firstSeenAt}
+${trappedAt}
+${trappedFor}
+${totalTrappedFor}
 
 <https://www.shodan.io/host/${payload.log.host.address}>`
             }

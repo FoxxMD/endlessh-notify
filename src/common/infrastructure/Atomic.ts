@@ -308,9 +308,20 @@ export interface IPDataFields {
     offset?: number;
 }
 
-export type EndlessLog = EndlessLogLine & {
+export type EndlessGeoLog = EndlessLogLine & {
     geo?: IPDataFields
 }
+
+export type EndlessLog = EndlessGeoLog & {
+    stats: EndlessLogStats
+}
+
+export interface EndlessLogStats {
+    firstSeen: Dayjs
+    connections: number
+    time: Duration
+}
+
 
 // https://stackoverflow.com/a/70887388/1469797
 export type ArbitraryObject = { [key: string]: unknown; };

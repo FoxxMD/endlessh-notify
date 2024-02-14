@@ -1,7 +1,7 @@
 #mapquestKey: 'MY_KEY' #optional! sign up at https://developer.mapquest.com/documentation/
 endlessDir: '/endlessh' # don't change if using docker
 notifiers:
-  # EXAMPLE for your "big" discord server which only notifies for interesting connections (trapped longer than 30 minutes)
+  # EXAMPLE for your "big" discord server which only notifies for interesting connections (trapped in total longer than 10 minutes or more than 20 total connections)
   - type: 'discord'
     name: 'Prod'
     webhook: 'https://discord.com/api/webhooks/MY_PROD_SERVER_WEBHOOK'
@@ -9,7 +9,9 @@ notifiers:
     events:
       # no notifications for 'accept' type events will be sent since it is not configured here
       - type: 'close'
-        minTrappedTime: '30 minutes' # only notify on close if trapped time was over 30  minutes
+        minTotalTrappedTime: '10 minutes' # only notify on close if IP has been trapped a total of 10 minutes or more
+      - type: 'close'
+        minTotalConnections: 20 # only notify on close if IP has connected 20 times or more
 
   # EXAMPLE for your private dev discord which notifies for all connections but only notifies for trapped IPs longer than 60 seconds
   - type: 'discord'

@@ -168,7 +168,20 @@ NOTIFY_EVENTS=accept,close
 
 To control behavior for individual notifiers or event behavior use a file config, see [`config.yaml` example](/config/config.yaml.example)
 
-Additionally, **Close** type events can be filtered based on the max/min trapped time of the IP.
+#### Event Filters
+
+Additionally, Events can be filtered based on stats for the individual Event or overall for the running session of endless-notify.
+
+* Accept
+  * `maxTotalConnection` - Notify if total connections by IP is less than this
+  * `minTotalConnection` - Notify if total connections by IP is more than this
+* Close
+  * `maxTotalConnection` - Notify if total connections by IP is less than this
+  * `minTotalConnection` - Notify if total connections by IP is more than this
+  * `maxTrappedTime` - Notify if event trapped time was less this
+  * `minTrappedTime` - Notify if event trapped time was more than this
+  * `maxTotalTrappedTime` - Notify if total trapped time for IP was less than this
+  * `minTotalTrappedTime` - Notify if total trapped time for IP was more than this
 
 ## Specific Notifiers
 

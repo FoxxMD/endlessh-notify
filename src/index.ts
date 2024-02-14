@@ -1,4 +1,4 @@
-import dayjs from 'dayjs';
+import dayjs, {Dayjs} from 'dayjs';
 import utc from 'dayjs/plugin/utc.js';
 import isBetween from 'dayjs/plugin/isBetween.js';
 import relativeTime from 'dayjs/plugin/relativeTime.js';
@@ -14,6 +14,8 @@ import {Notifiers} from "./notifier/Notifiers.js";
 import {EndlessFileParser} from "./EndlessFileParser.js";
 import {pEvent} from "p-event";
 import {GeoQueue} from "./GeoQueue.js";
+import {LRUCache} from "lru-cache";
+import {EndlessLogStats} from "./common/infrastructure/Atomic.js";
 
 dayjs.extend(utc)
 dayjs.extend(isBetween);
@@ -48,12 +50,26 @@ const configDir = process.env.CONFIG_DIR || path.resolve(projectDir, `./config`)
 
         logger = getLogger(logging);
 
+        const statsCache = new LRUCache<string, EndlessLogStats>({max: 1000});
+
         const notifiers = new Notifiers(logger, config.mapquestKey);
         await notifiers.buildWebhooks(config.notifiers);
 
         const geoQueue = new GeoQueue(logger);
         geoQueue.on('log', async (log) => {
-           await notifiers.push(log);
+            const stats = statsCache.get(log.host.address) ?? {
+                firstSeen: log.time,
+                connections: 0,
+                time: dayjs.duration(0)
+            };
+            if ('duration' in log) {
+                stats.time = stats.time.add(log.duration)
+            }
+            if (log.type === 'accept' || stats.connections === 0) {
+                stats.connections++;
+            }
+            statsCache.set(log.host.address, stats);
+            await notifiers.push({...log, stats});
         });
 
         try {

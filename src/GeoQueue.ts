@@ -1,4 +1,4 @@
-import {EndlessLog, EndlessLogLine, IPDataFields} from "./common/infrastructure/Atomic.js";
+import {EndlessGeoLog, EndlessLog, EndlessLogLine, IPDataFields} from "./common/infrastructure/Atomic.js";
 import {TypedEventEmitter} from "./utils/TypedEventEmitter.js";
 import {Logger} from "@foxxmd/winston";
 import {mergeArr, sleep} from "./utils/index.js";
@@ -6,7 +6,7 @@ import {queue, QueueObject} from 'async';
 import {GeoLookup} from "./GeoLookup.js";
 
 type GeoHydratedLogLineEvents = {
-    'log': [log: EndlessLog]
+    'log': [log: EndlessGeoLog]
 }
 
 interface GeoTask {

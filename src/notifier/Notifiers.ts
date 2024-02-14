@@ -13,11 +13,11 @@ import {
 } from "../common/infrastructure/webhooks.js";
 import {DiscordWebhookNotifier} from "./DiscordWebhookNotifier.js";
 import {queue, QueueObject} from 'async';
-import {EndlessLog, EndlessLogLine} from "../common/infrastructure/Atomic.js";
+import {EndlessLog} from "../common/infrastructure/Atomic.js";
 import {MapImageService} from "../MapImageService.js";
 
 interface NotifyTask {
-    log: EndlessLogLine
+    log: EndlessLog
 }
 
 export class Notifiers {

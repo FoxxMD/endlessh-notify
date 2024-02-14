@@ -25,6 +25,8 @@ export interface EventTypeCommon {
     type: 'accept' | 'close'
     debounceInterval?: string
     name?: string
+    minTotalConnections?: number
+    maxTotalConnections?: number
 }
 
 export interface EventTypeAccept extends EventTypeCommon {
@@ -34,7 +36,9 @@ export interface EventTypeAccept extends EventTypeCommon {
 export interface EventTypeClose extends EventTypeCommon {
     type: 'close'
     minTrappedTime?: string
+    minTotalTrappedTime?: string
     maxTrappedTime?: string
+    maxTotalTrappedTime?: string
 }
 
 export type EventType = EventTypeAccept | EventTypeClose;
