@@ -12,11 +12,9 @@ import {
     WebhookPayload
 } from "../common/infrastructure/webhooks.js";
 import {DiscordWebhookNotifier} from "./DiscordWebhookNotifier.js";
-import {LRUCache} from "lru-cache";
-import got from 'got';
-import {ErrorWithCause} from "pony-cause";
 import {queue, QueueObject} from 'async';
 import {EndlessLog, EndlessLogLine} from "../common/infrastructure/Atomic.js";
+import {MapImageService} from "../MapImageService.js";
 
 interface NotifyTask {
     log: EndlessLogLine
@@ -30,25 +28,18 @@ export class Notifiers {
 
     emitter: EventEmitter;
 
-    mapquestKey?: string;
-    imageCache: LRUCache<string, Buffer> = new LRUCache({max: 100});
+    imageService: MapImageService;
 
     queue: QueueObject<NotifyTask>;
 
     constructor(logger: Logger, mapquestKey?: string) {
-        this.mapquestKey = mapquestKey;
 
         this.logger = logger.child({labels: ['Notifiers']}, mergeArr);
         this.queue = this.generateQueue();
         this.queue.error((err, task) => {
            this.logger.warn(err);
         });
-
-        if (this.mapquestKey !== undefined) {
-            this.logger.info('Mapquest Key found. Will generate map images for Discord notifiers.');
-        } else {
-            this.logger.info('No Mapquest Key found. Will NOT generate map images for Discord notifiers.');
-        }
+        this.imageService = new MapImageService(logger, mapquestKey);
     }
 
     buildWebhooks = async (webhookConfigs: WebhookConfig[]) => {
@@ -63,7 +54,7 @@ export class Notifiers {
                     webhook = new NtfyWebhookNotifier(defaultName, config as NtfyConfig, this.logger);
                     break;
                 case 'discord':
-                    webhook = new DiscordWebhookNotifier(defaultName, config as DiscordConfig, this.logger);
+                    webhook = new DiscordWebhookNotifier(defaultName, config as DiscordConfig, this.imageService, this.logger);
                     break;
                 default:
                     // @ts-ignore
@@ -81,49 +72,12 @@ export class Notifiers {
     notify = async (payload: WebhookPayload) => {
         let anySent = false;
         for (const webhook of this.webhooks) {
-
-            let imageData: Buffer | undefined;
-            if (webhook instanceof DiscordWebhookNotifier && payload.log.geo !== undefined) {
-                imageData = await this.getMapquestImage(payload.log.geo.lat, payload.log.geo.lon);
-            }
-
-            const res = await webhook.notify({...payload, mapImageData: imageData});
+            const res = await webhook.notify(payload);
             if (res !== undefined) {
                 anySent = true;
             }
         }
         return anySent;
-    }
-
-    getMapquestImage = async (lat: number, long: number): Promise<Buffer | undefined> => {
-        if(this.mapquestKey === undefined) {
-            return undefined;
-        }
-
-        const latlong = `${lat.toString()},${long.toString()}`;
-        let data = this.imageCache.get(latlong);
-        if (data === undefined) {
-            try {
-                data = await this.fetchMapquestImage(lat, long);
-                this.imageCache.set(latlong, data);
-            } catch (e) {
-                this.logger.warn(e);
-                return undefined;
-            }
-        } else {
-            this.logger.debug(`Got cached image data for ${latlong}`)
-        }
-        return data;
-    }
-
-    async fetchMapquestImage(lat: number, long: number): Promise<Buffer | undefined> {
-        const latlong = `${lat.toString()},${long.toString()}`;
-        try {
-            this.logger.debug(`Getting Mapquest Image => https://www.mapquestapi.com/staticmap/v5/map?center=${latlong}&size=500,300}`);
-            return await got.get(`https://www.mapquestapi.com/staticmap/v5/map?center=${latlong}&size=500,300&key=${this.mapquestKey}`).buffer();
-        } catch (e) {
-            throw new ErrorWithCause(`Failed to get mapquest image for ${latlong}`, {cause: e})
-        }
     }
 
     protected generateQueue() {

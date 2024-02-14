@@ -5,16 +5,19 @@ import {DiscordConfig, WebhookPayload} from "../common/infrastructure/webhooks.j
 import {ErrorWithCause} from "pony-cause";
 import dayjs from "dayjs";
 import {doubleReturnNewline, durationToHuman, plainTag} from "../utils/index.js";
+import {MapImageService} from "../MapImageService.js";
 
 export class DiscordWebhookNotifier extends AbstractWebhookNotifier {
 
     declare config: DiscordConfig;
+    imageService: MapImageService;
     client: WebhookClient;
 
-    constructor(defaultName: string, config: DiscordConfig, logger: Logger) {
+    constructor(defaultName: string, config: DiscordConfig, imageService: MapImageService, logger: Logger) {
         super('Discord', defaultName, config, logger);
         this.requiresAuth = false;
         this.client = new WebhookClient({url: config.webhook})
+        this.imageService = imageService;
     }
 
     initialize = async () => {
@@ -35,6 +38,10 @@ export class DiscordWebhookNotifier extends AbstractWebhookNotifier {
 
         let files: AttachmentBuilder[] = [];
         try {
+
+            if(payload.mapImageData === undefined && payload.log.geo !== undefined) {
+                payload.mapImageData = await this.imageService.getImage(payload.log.geo.lat, payload.log.geo.lon);
+            }
 
             const embed = DiscordWebhookNotifier.generateEmbed(payload);
 

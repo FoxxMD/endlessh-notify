@@ -9,6 +9,7 @@ import dayjs from "dayjs";
 import {Address4} from "ip-address";
 import {sleep} from "../src/utils/index.js";
 import {DiscordWebhookNotifier} from "../src/notifier/DiscordWebhookNotifier.js";
+import {MapImageService} from "../src/MapImageService.js";
 
 const {loggers} = winstonDef;
 const logger = loggers.get('noop');
@@ -61,20 +62,20 @@ describe('Mapquest', function () {
         after(function () {
             sinon.restore();
         });
-        const notifiers = new Notifiers(logger);
-        const fake = sinon.replace(notifiers, 'fetchMapquestImage', sinon.fake.returns(Promise.resolve(Buffer.from('this is junk', 'utf-8'))));
-        const res = await notifiers.getMapquestImage(1, 2);
+        const imageService = new MapImageService(logger);
+        const fake = sinon.replace(imageService, 'fetchMapquestImage', sinon.fake.returns(Promise.resolve(Buffer.from('this is junk', 'utf-8'))));
+        const res = await imageService.getImage(1, 2);
         assert.isUndefined(res);
     });
     it('should cache image result', async function () {
         after(function () {
             sinon.restore();
         });
-        const notifiers = new Notifiers(logger, '1234');
-        const fake = sinon.replace(notifiers, 'fetchMapquestImage', sinon.fake.returns(Promise.resolve(Buffer.from('this is junk', 'utf-8'))));
-        await notifiers.getMapquestImage(1, 2);
-        await notifiers.getMapquestImage(1, 2);
-        await notifiers.getMapquestImage(1, 2);
+        const imageService = new MapImageService(logger, '1234');
+        const fake = sinon.replace(imageService, 'fetchMapquestImage', sinon.fake.returns(Promise.resolve(Buffer.from('this is junk', 'utf-8'))));
+        await imageService.getImage(1, 2);
+        await imageService.getImage(1, 2);
+        await imageService.getImage(1, 2);
         assert.equal(fake.callCount, 1);
     });
 });
