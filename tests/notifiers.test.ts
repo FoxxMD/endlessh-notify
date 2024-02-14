@@ -44,6 +44,11 @@ const payloadAccept: WebhookPayload = {
             lat: -27.4766,
             lon: 153.0166,
             isp: "Cloudflare, Inc"
+        },
+        stats: {
+            firstSeen: dayjs().subtract(1, 'minute'),
+            connections: 2,
+            time: dayjs.duration(30, 's')
         }
     }
 }
@@ -151,6 +156,32 @@ describe('ACCEPT Notifiers', function () {
             await sleep(100);
             assert.isUndefined(await notif.notify(payloadAccept));
         });
+        it('if total connections above max', async function () {
+            const notif = new TestNotifier('test', 'test', {
+                type: 'discord',
+                events: [
+                    {
+                        type: 'accept',
+                        maxTotalConnections: 1
+                    }
+                ],
+                webhook: 'test'
+            }, logger);
+            assert.isUndefined(await notif.notify(payloadAccept));
+        });
+        it('if total connections below min', async function () {
+            const notif = new TestNotifier('test', 'test', {
+                type: 'discord',
+                events: [
+                    {
+                        type: 'accept',
+                        minTotalConnections: 3
+                    }
+                ],
+                webhook: 'test'
+            }, logger);
+            assert.isUndefined(await notif.notify(payloadAccept));
+        });
     });
 });
 
@@ -188,6 +219,21 @@ describe('CLOSE Notifiers', function () {
             assert.isUndefined(await notif.notify(payloadClose));
         });
 
+        it('if total trapped time below min', async function () {
+            const notif = new TestNotifier('test', 'test', {
+                type: 'discord',
+                events: [
+                    {
+                        type: 'close',
+                        debounceInterval: '5 seconds',
+                        minTrappedTime: '40 seconds'
+                    }
+                ],
+                webhook: 'test'
+            }, logger);
+            assert.isUndefined(await notif.notify(payloadClose));
+        });
+
         it('if trapped time above max', async function () {
             const notif = new TestNotifier('test', 'test', {
                 type: 'discord',
@@ -196,6 +242,51 @@ describe('CLOSE Notifiers', function () {
                         type: 'close',
                         debounceInterval: '5 seconds',
                         maxTrappedTime: '8 seconds'
+                    }
+                ],
+                webhook: 'test'
+            }, logger);
+            assert.isUndefined(await notif.notify(payloadClose));
+        });
+
+        it('if total trapped time above max', async function () {
+            const notif = new TestNotifier('test', 'test', {
+                type: 'discord',
+                events: [
+                    {
+                        type: 'close',
+                        debounceInterval: '5 seconds',
+                        maxTotalTrappedTime: '20 seconds'
+                    }
+                ],
+                webhook: 'test'
+            }, logger);
+            assert.isUndefined(await notif.notify(payloadClose));
+        });
+
+        it('if total connections above max', async function () {
+            const notif = new TestNotifier('test', 'test', {
+                type: 'discord',
+                events: [
+                    {
+                        type: 'close',
+                        debounceInterval: '5 seconds',
+                        maxTotalConnections: 1
+                    }
+                ],
+                webhook: 'test'
+            }, logger);
+            assert.isUndefined(await notif.notify(payloadClose));
+        });
+
+        it('if total connections below min', async function () {
+            const notif = new TestNotifier('test', 'test', {
+                type: 'discord',
+                events: [
+                    {
+                        type: 'close',
+                        debounceInterval: '5 seconds',
+                        minTotalConnections: 3
                     }
                 ],
                 webhook: 'test'

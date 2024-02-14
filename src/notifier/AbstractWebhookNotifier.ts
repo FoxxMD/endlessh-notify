@@ -154,7 +154,7 @@ export abstract class AbstractWebhookNotifier {
                     }
                 }
                 const hCloseEvent: HydratedEventTypeClose = {
-                    ...eventConfig,
+                    ...closeEventConfig,
                     type: 'close'
                 };
                 this.closeEvents.push(hCloseEvent);
