@@ -76,6 +76,7 @@ export class DiscordWebhookNotifier extends AbstractWebhookNotifier {
             const trappedAt = payload.log.type === 'accept' ? '' : `\nTrapped At: ${time(dayjs().subtract(payload.log.duration.asMilliseconds(), 'ms').toDate())}`
             const totalTrappedFor = payload.log.type === 'accept' ? '' : `\nTotal Trapped Time: **${durationToHuman(payload.log.stats.time)}**`
             const firstSeenAt = `\nFirst Seen At: ${time(payload.log.stats.firstSeen.toDate())}`
+            const totalConnections = `\nConnected **${payload.log.stats.connections}x** in total`
             const embed: APIEmbed = {
                 title: payload.log.type === 'accept' ? 'Endlessh/IP Trapped' : 'Endlessh/IP Disconnected',
                 url: `https://db-ip.com/${payload.log.host.address}`,
@@ -85,6 +86,7 @@ ${firstSeenAt}
 ${trappedAt}
 ${trappedFor}
 ${totalTrappedFor}
+${totalConnections}
 
 <https://www.shodan.io/host/${payload.log.host.address}>`
             }
