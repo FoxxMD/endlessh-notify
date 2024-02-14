@@ -54,7 +54,6 @@ export class GotifyWebhookNotifier extends AbstractWebhookNotifier {
                 title: payload.log.type === 'accept' ? 'New IP Trapped' : 'New IP Disconnected',
                 priority: this.priorities[payload.priority]
             });
-            this.logger.debug(`Pushed notification.`);
             return true;
         } catch (e: any) {
             if(e instanceof HTTPError && e.response.statusCode === 401) {

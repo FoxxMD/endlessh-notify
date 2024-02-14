@@ -1,4 +1,10 @@
-import {EndlessGeoLog, EndlessLog, EndlessLogLine, IPDataFields} from "./common/infrastructure/Atomic.js";
+import {
+    EndlessGeoLog,
+    EndlessLog,
+    EndlessLogLine,
+    EndlessStatLog,
+    IPDataFields
+} from "./common/infrastructure/Atomic.js";
 import {TypedEventEmitter} from "./utils/TypedEventEmitter.js";
 import {Logger} from "@foxxmd/winston";
 import {mergeArr, sleep} from "./utils/index.js";
@@ -6,11 +12,11 @@ import {queue, QueueObject} from 'async';
 import {GeoLookup} from "./GeoLookup.js";
 
 type GeoHydratedLogLineEvents = {
-    'log': [log: EndlessGeoLog]
+    'log': [log: EndlessLog]
 }
 
 interface GeoTask {
-    log: EndlessLogLine
+    log: EndlessStatLog
 }
 
 export class GeoQueue extends TypedEventEmitter<GeoHydratedLogLineEvents> {
@@ -29,7 +35,7 @@ export class GeoQueue extends TypedEventEmitter<GeoHydratedLogLineEvents> {
         });
     }
 
-    public async push(log: EndlessLogLine) {
+    public async push(log: EndlessStatLog) {
         this.queue.push({log});
     }
 

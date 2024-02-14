@@ -65,7 +65,7 @@ export class EndlessFileParser extends TypedEventEmitter<EndlessFileEventTypes> 
             if(parsedLine === undefined) {
                 this.logger.debug(`Not ACCEPT/CLOSE line => ${line}`);
             } else {
-                this.logger.debug(`Parsed => ${endlessLogLineToFriendly(parsedLine)}`);
+                //this.logger.debug(`Parsed => ${endlessLogLineToFriendly(parsedLine)}`);
                 this.emit('line', parsedLine);
             }
         } catch (e) {

@@ -15,7 +15,8 @@ import {EndlessFileParser} from "./EndlessFileParser.js";
 import {pEvent} from "p-event";
 import {GeoQueue} from "./GeoQueue.js";
 import {LRUCache} from "lru-cache";
-import {EndlessLogStats} from "./common/infrastructure/Atomic.js";
+import {EndlessLogStats, EndlessStatLog} from "./common/infrastructure/Atomic.js";
+import {endlessLogLineToFriendly} from "./utils/index.js";
 
 dayjs.extend(utc)
 dayjs.extend(isBetween);
@@ -57,19 +58,7 @@ const configDir = process.env.CONFIG_DIR || path.resolve(projectDir, `./config`)
 
         const geoQueue = new GeoQueue(logger);
         geoQueue.on('log', async (log) => {
-            const stats = statsCache.get(log.host.address) ?? {
-                firstSeen: log.time,
-                connections: 0,
-                time: dayjs.duration(0)
-            };
-            if ('duration' in log) {
-                stats.time = stats.time.add(log.duration)
-            }
-            if (log.type === 'accept' || stats.connections === 0) {
-                stats.connections++;
-            }
-            statsCache.set(log.host.address, stats);
-            await notifiers.push({...log, stats});
+            await notifiers.push(log);
         });
 
         try {
@@ -78,7 +67,21 @@ const configDir = process.env.CONFIG_DIR || path.resolve(projectDir, `./config`)
                 throw err;
             });
             parser.on('line', async (line) => {
-                await geoQueue.push(line);
+                const stats = statsCache.get(line.host.address) ?? {
+                    firstSeen: line.time,
+                    connections: 0,
+                    time: dayjs.duration(0)
+                };
+                if ('duration' in line) {
+                    stats.time = stats.time.add(line.duration)
+                }
+                if (line.type === 'accept' || stats.connections === 0) {
+                    stats.connections++;
+                }
+                statsCache.set(line.host.address, stats);
+                const statLog: EndlessStatLog = {...line,stats};
+                parser.logger.verbose(`Parsed => ${endlessLogLineToFriendly(statLog)}`);
+                await geoQueue.push(statLog);
             });
             await parser.start();
             await pEvent(parser, 'close');

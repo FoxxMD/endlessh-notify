@@ -308,13 +308,15 @@ export interface IPDataFields {
     offset?: number;
 }
 
+export type EndlessStatLog = EndlessLogLine & {
+    stats: EndlessLogStats
+}
+
 export type EndlessGeoLog = EndlessLogLine & {
     geo?: IPDataFields
 }
 
-export type EndlessLog = EndlessGeoLog & {
-    stats: EndlessLogStats
-}
+export type EndlessLog = EndlessGeoLog & EndlessStatLog;
 
 export interface EndlessLogStats {
     firstSeen: Dayjs

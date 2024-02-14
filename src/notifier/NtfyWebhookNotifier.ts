@@ -65,7 +65,6 @@ export class NtfyWebhookNotifier extends AbstractWebhookNotifier {
                 }
             }
             await publish(req);
-            this.logger.debug(`Pushed notification.`);
             return true;
         } catch (e: any) {
             this.logger.error(`Failed to push notification: ${e.message}`)

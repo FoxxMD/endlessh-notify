@@ -1,5 +1,5 @@
 import {Logger} from '@foxxmd/winston';
-import {durationToHuman, mergeArr, parseDuration} from "../utils/index.js";
+import {durationToHuman, endlessLogLineToFriendly, mergeArr, parseDuration} from "../utils/index.js";
 import {
     EventTypeAccept,
     EventTypeClose,
@@ -238,6 +238,7 @@ export abstract class AbstractWebhookNotifier {
                 }
                 const res = await this.doNotify(payload);
                 if(res) {
+                    this.logger.verbose(`Pushed notification`);
                     event.cache.set(payload.log.host.address, dayjs());
                 }
                 return res;

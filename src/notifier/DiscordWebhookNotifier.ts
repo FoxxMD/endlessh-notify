@@ -53,7 +53,6 @@ export class DiscordWebhookNotifier extends AbstractWebhookNotifier {
                 files.push(file);
             }
             await this.client.send({embeds: [embed], files});
-            this.logger.debug(`Pushed notification.`);
             return true;
         } catch (e: any) {
             this.logger.error(new ErrorWithCause(`Failed to push notification`, {cause: e}));

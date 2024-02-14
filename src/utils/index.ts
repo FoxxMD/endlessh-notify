@@ -8,6 +8,7 @@ import {
     trimResultTransformer
 } from 'common-tags'
 import {
+    EndlessLog,
     EndlessLogLine,
     isEndlessClose,
     NamedGroup,
@@ -347,14 +348,20 @@ export const parseToAddress = (val: string): Address4 | Address6 => {
     return address;
 }
 
-export const endlessLogLineToFriendly = (line: EndlessLogLine): string => {
+export const endlessLogLineToFriendly = (line: EndlessLogLine | EndlessLog): string => {
     const parts = [
-        line.time.format(),
+        line.type === 'accept' ? line.time.format() : line.time.subtract(line.duration).format(),
         line.type === 'accept' ? 'ACCEPT' : 'CLOSE',
-        `${(line.host instanceof Address4) ? 'IPV4' : 'IPv6'} ${line.host.address}`
+        `${(line.host instanceof Address4) ? 'IPv4' : 'IPv6'} ${line.host.address}`
     ];
     if(isEndlessClose(line)) {
         parts.push(`Trapped ${durationToHuman(line.duration)}`)
+    }
+    if('stats' in line) {
+        if(isEndlessClose(line)) {
+            parts.push(`Total Trapped ${durationToHuman(line.stats.time)}`)
+        }
+        parts.push(`Total Connections ${line.stats.connections}`)
     }
     return parts.join(' | ');
 }
