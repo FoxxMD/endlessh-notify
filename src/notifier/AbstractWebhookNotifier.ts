@@ -251,12 +251,24 @@ export abstract class AbstractWebhookNotifier {
 const eventTypeSummary = (et: HydratedEventTypeAccept | HydratedEventTypeClose): string => {
     const parts: string[] = [`Event ${et.name} -- notify if =>`];
     const filters: string[] = [];
+    if(et.minTotalConnections !== undefined) {
+        filters.push(`Connected at LEAST ${et.minTotalConnections}x in total`);
+    }
+    if(et.maxTotalConnections !== undefined) {
+        filters.push(`Connected at MOST ${et.maxTotalConnections}x in total`);
+    }
     if(isHydratedEventTypeClose(et)) {
         if(et.minTrappedTime !== undefined) {
             filters.push(`Trapped at LEAST ${durationToHuman(et.minTrappedTime)}`);
         }
         if(et.maxTrappedTime !== undefined) {
             filters.push(`Trapped at MOST ${durationToHuman(et.maxTrappedTime)}`);
+        }
+        if(et.minTotalTrappedTime !== undefined) {
+            filters.push(`Trapped at LEAST ${durationToHuman(et.minTotalTrappedTime)} in total`);
+        }
+        if(et.maxTotalTrappedTime) {
+            filters.push(`Trapped at MOST ${durationToHuman(et.maxTotalTrappedTime)} in total`);
         }
     }
     filters.push(`New or last seen longer than ${durationToHuman(et.debounceInterval)} ago`);
