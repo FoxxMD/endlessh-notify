@@ -216,19 +216,19 @@ export abstract class AbstractWebhookNotifier {
                     continue;
                 }
                 if(event.minTrappedTime !== undefined && log.duration < event.minTrappedTime) {
-                    event.logger.debug(`Not sending notification because trapped time was less than minTrappedTime`);
+                    event.logger.debug(`Not sending notification because trapped time (${durationToHuman(log.duration)}) was less than minTrappedTime (${durationToHuman(event.minTrappedTime)})`);
                     continue;
                 }
                 if(event.maxTrappedTime !== undefined && log.duration > event.maxTrappedTime) {
-                    event.logger.debug(`Not sending notification because trapped time was more than maxTrappedTime`);
+                    event.logger.debug(`Not sending notification because trapped time (${durationToHuman(log.duration)}) was more than maxTrappedTime (${durationToHuman(event.maxTrappedTime)})`);
                     continue;
                 }
                 if(event.minTotalTrappedTime !== undefined && payload.log.stats.time < event.minTotalTrappedTime) {
-                    event.logger.debug(`Not sending notification because total trapped time was less than minTotalTrappedTime`);
+                    event.logger.debug(`Not sending notification because total trapped time (${durationToHuman(payload.log.stats.time)}) was less than minTotalTrappedTime (${durationToHuman(event.minTotalTrappedTime)})`);
                     continue;
                 }
                 if(event.maxTotalTrappedTime !== undefined && payload.log.stats.time > event.maxTotalTrappedTime) {
-                    event.logger.debug(`Not sending notification because total trapped time was more than maxTotalTrappedTime`);
+                    event.logger.debug(`Not sending notification because total trapped time (${durationToHuman(payload.log.stats.time)}) was more than maxTotalTrappedTime (${durationToHuman(event.maxTotalTrappedTime)})`);
                     continue;
                 }
                 const lastSeen = event.cache.get(payload.log.host.address);
