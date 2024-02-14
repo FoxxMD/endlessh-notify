@@ -29,7 +29,7 @@ export const createAjvFactory = (logger: Logger): AjvNS.default => {
 
 export const validateJson = <T>(config: object, schema: Schema, logger: AppLogger): T => {
     const ajv = createAjvFactory(logger);
-    const valid = true; //ajv.validate(schema, config);
+    const valid = ajv.validate(schema, config);
     if (valid) {
         return config as unknown as T;
     } else {

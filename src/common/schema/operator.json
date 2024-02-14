@@ -1,6 +1,160 @@
 {
     "$schema": "http://json-schema.org/draft-07/schema#",
     "definitions": {
+        "DiscordConfig": {
+            "properties": {
+                "debounceInterval": {
+                    "type": "string"
+                },
+                "events": {
+                    "items": {
+                        "$ref": "#/definitions/EventType"
+                    },
+                    "type": "array"
+                },
+                "name": {
+                    "description": "A friendly name used to identify webhook config in logs",
+                    "type": "string"
+                },
+                "type": {
+                    "description": "Webhook type. Valid values are:\n\n* gotify\n* ntfy",
+                    "enum": [
+                        "discord"
+                    ],
+                    "type": "string"
+                },
+                "webhook": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "type",
+                "webhook"
+            ],
+            "type": "object"
+        },
+        "EventType": {
+            "anyOf": [
+                {
+                    "$ref": "#/definitions/EventTypeAccept"
+                },
+                {
+                    "$ref": "#/definitions/EventTypeClose"
+                }
+            ]
+        },
+        "EventTypeAccept": {
+            "properties": {
+                "debounceInterval": {
+                    "type": "string"
+                },
+                "maxTotalConnections": {
+                    "type": "number"
+                },
+                "minTotalConnections": {
+                    "type": "number"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "type": {
+                    "enum": [
+                        "accept"
+                    ],
+                    "type": "string"
+                }
+            },
+            "required": [
+                "type"
+            ],
+            "type": "object"
+        },
+        "EventTypeClose": {
+            "properties": {
+                "debounceInterval": {
+                    "type": "string"
+                },
+                "maxTotalConnections": {
+                    "type": "number"
+                },
+                "maxTotalTrappedTime": {
+                    "type": "string"
+                },
+                "maxTrappedTime": {
+                    "type": "string"
+                },
+                "minTotalConnections": {
+                    "type": "number"
+                },
+                "minTotalTrappedTime": {
+                    "type": "string"
+                },
+                "minTrappedTime": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "type": {
+                    "enum": [
+                        "close"
+                    ],
+                    "type": "string"
+                }
+            },
+            "required": [
+                "type"
+            ],
+            "type": "object"
+        },
+        "GotifyConfig": {
+            "properties": {
+                "debounceInterval": {
+                    "type": "string"
+                },
+                "events": {
+                    "items": {
+                        "$ref": "#/definitions/EventType"
+                    },
+                    "type": "array"
+                },
+                "name": {
+                    "description": "A friendly name used to identify webhook config in logs",
+                    "type": "string"
+                },
+                "priorities": {
+                    "$ref": "#/definitions/PrioritiesConfig",
+                    "description": "Priority of messages\n\n* Info -> 5\n* Warn -> 7\n* Error -> 10"
+                },
+                "token": {
+                    "description": "The token created for this Application in Gotify",
+                    "examples": [
+                        "AQZI58fA.rfSZbm"
+                    ],
+                    "type": "string"
+                },
+                "type": {
+                    "description": "Webhook type. Valid values are:\n\n* gotify\n* ntfy",
+                    "enum": [
+                        "gotify"
+                    ],
+                    "type": "string"
+                },
+                "url": {
+                    "description": "The URL of the Gotify server. Same URL that would be used to reach the Gotify UI",
+                    "examples": [
+                        "http://192.168.0.100:8078"
+                    ],
+                    "type": "string"
+                }
+            },
+            "required": [
+                "token",
+                "type",
+                "url"
+            ],
+            "type": "object"
+        },
         "LogLevel": {
             "enum": [
                 "debug",
@@ -12,7 +166,7 @@
             ],
             "type": "string"
         },
-        "import(\"/home/foxx/code/endlessh-notifications/src/common/infrastructure/Logging\",{assert:{\"resolution-mode\":\"import\"}}).LoggingOptions": {
+        "LoggingOptions": {
             "properties": {
                 "console": {
                     "$ref": "#/definitions/LogLevel",
@@ -48,150 +202,14 @@
             },
             "type": "object"
         },
-        "import(\"/home/foxx/code/endlessh-notifications/src/common/infrastructure/webhooks\",{assert:{\"resolution-mode\":\"import\"}}).DiscordConfig": {
+        "NtfyConfig": {
             "properties": {
                 "debounceInterval": {
                     "type": "string"
                 },
                 "events": {
                     "items": {
-                        "$ref": "#/definitions/import(\"/home/foxx/code/endlessh-notifications/src/common/infrastructure/webhooks\",{assert:{\"resolution-mode\":\"import\"}}).EventType"
-                    },
-                    "type": "array"
-                },
-                "name": {
-                    "description": "A friendly name used to identify webhook config in logs",
-                    "type": "string"
-                },
-                "type": {
-                    "description": "Webhook type. Valid values are:\n\n* gotify\n* ntfy",
-                    "enum": [
-                        "discord"
-                    ],
-                    "type": "string"
-                },
-                "webhook": {
-                    "type": "string"
-                }
-            },
-            "required": [
-                "type",
-                "webhook"
-            ],
-            "type": "object"
-        },
-        "import(\"/home/foxx/code/endlessh-notifications/src/common/infrastructure/webhooks\",{assert:{\"resolution-mode\":\"import\"}}).EventType": {
-            "anyOf": [
-                {
-                    "$ref": "#/definitions/import(\"/home/foxx/code/endlessh-notifications/src/common/infrastructure/webhooks\",{assert:{\"resolution-mode\":\"import\"}}).EventTypeAccept"
-                },
-                {
-                    "$ref": "#/definitions/import(\"/home/foxx/code/endlessh-notifications/src/common/infrastructure/webhooks\",{assert:{\"resolution-mode\":\"import\"}}).EventTypeClose"
-                }
-            ]
-        },
-        "import(\"/home/foxx/code/endlessh-notifications/src/common/infrastructure/webhooks\",{assert:{\"resolution-mode\":\"import\"}}).EventTypeAccept": {
-            "properties": {
-                "debounceInterval": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "type": {
-                    "enum": [
-                        "accept"
-                    ],
-                    "type": "string"
-                }
-            },
-            "required": [
-                "type"
-            ],
-            "type": "object"
-        },
-        "import(\"/home/foxx/code/endlessh-notifications/src/common/infrastructure/webhooks\",{assert:{\"resolution-mode\":\"import\"}}).EventTypeClose": {
-            "properties": {
-                "debounceInterval": {
-                    "type": "string"
-                },
-                "maxTrappedTime": {
-                    "type": "string"
-                },
-                "minTrappedTime": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "type": {
-                    "enum": [
-                        "close"
-                    ],
-                    "type": "string"
-                }
-            },
-            "required": [
-                "type"
-            ],
-            "type": "object"
-        },
-        "import(\"/home/foxx/code/endlessh-notifications/src/common/infrastructure/webhooks\",{assert:{\"resolution-mode\":\"import\"}}).GotifyConfig": {
-            "properties": {
-                "debounceInterval": {
-                    "type": "string"
-                },
-                "events": {
-                    "items": {
-                        "$ref": "#/definitions/import(\"/home/foxx/code/endlessh-notifications/src/common/infrastructure/webhooks\",{assert:{\"resolution-mode\":\"import\"}}).EventType"
-                    },
-                    "type": "array"
-                },
-                "name": {
-                    "description": "A friendly name used to identify webhook config in logs",
-                    "type": "string"
-                },
-                "priorities": {
-                    "$ref": "#/definitions/import(\"/home/foxx/code/endlessh-notifications/src/common/infrastructure/webhooks\",{assert:{\"resolution-mode\":\"import\"}}).PrioritiesConfig",
-                    "description": "Priority of messages\n\n* Info -> 5\n* Warn -> 7\n* Error -> 10"
-                },
-                "token": {
-                    "description": "The token created for this Application in Gotify",
-                    "examples": [
-                        "AQZI58fA.rfSZbm"
-                    ],
-                    "type": "string"
-                },
-                "type": {
-                    "description": "Webhook type. Valid values are:\n\n* gotify\n* ntfy",
-                    "enum": [
-                        "gotify"
-                    ],
-                    "type": "string"
-                },
-                "url": {
-                    "description": "The URL of the Gotify server. Same URL that would be used to reach the Gotify UI",
-                    "examples": [
-                        "http://192.168.0.100:8078"
-                    ],
-                    "type": "string"
-                }
-            },
-            "required": [
-                "token",
-                "type",
-                "url"
-            ],
-            "type": "object"
-        },
-        "import(\"/home/foxx/code/endlessh-notifications/src/common/infrastructure/webhooks\",{assert:{\"resolution-mode\":\"import\"}}).NtfyConfig": {
-            "properties": {
-                "debounceInterval": {
-                    "type": "string"
-                },
-                "events": {
-                    "items": {
-                        "$ref": "#/definitions/import(\"/home/foxx/code/endlessh-notifications/src/common/infrastructure/webhooks\",{assert:{\"resolution-mode\":\"import\"}}).EventType"
+                        "$ref": "#/definitions/EventType"
                     },
                     "type": "array"
                 },
@@ -204,7 +222,7 @@
                     "type": "string"
                 },
                 "priorities": {
-                    "$ref": "#/definitions/import(\"/home/foxx/code/endlessh-notifications/src/common/infrastructure/webhooks\",{assert:{\"resolution-mode\":\"import\"}}).PrioritiesConfig",
+                    "$ref": "#/definitions/PrioritiesConfig",
                     "description": "Priority of messages\n\n* Info -> 3\n* Warn -> 4\n* Error -> 5"
                 },
                 "topic": {
@@ -237,7 +255,7 @@
             ],
             "type": "object"
         },
-        "import(\"/home/foxx/code/endlessh-notifications/src/common/infrastructure/webhooks\",{assert:{\"resolution-mode\":\"import\"}}).PrioritiesConfig": {
+        "PrioritiesConfig": {
             "properties": {
                 "error": {
                     "examples": [
@@ -265,16 +283,16 @@
             ],
             "type": "object"
         },
-        "import(\"/home/foxx/code/endlessh-notifications/src/common/infrastructure/webhooks\",{assert:{\"resolution-mode\":\"import\"}}).WebhookConfig": {
+        "WebhookConfig": {
             "anyOf": [
                 {
-                    "$ref": "#/definitions/import(\"/home/foxx/code/endlessh-notifications/src/common/infrastructure/webhooks\",{assert:{\"resolution-mode\":\"import\"}}).GotifyConfig"
+                    "$ref": "#/definitions/GotifyConfig"
                 },
                 {
-                    "$ref": "#/definitions/import(\"/home/foxx/code/endlessh-notifications/src/common/infrastructure/webhooks\",{assert:{\"resolution-mode\":\"import\"}}).NtfyConfig"
+                    "$ref": "#/definitions/NtfyConfig"
                 },
                 {
-                    "$ref": "#/definitions/import(\"/home/foxx/code/endlessh-notifications/src/common/infrastructure/webhooks\",{assert:{\"resolution-mode\":\"import\"}}).DiscordConfig"
+                    "$ref": "#/definitions/DiscordConfig"
                 }
             ]
         }
@@ -284,14 +302,14 @@
             "type": "string"
         },
         "logging": {
-            "$ref": "#/definitions/import(\"/home/foxx/code/endlessh-notifications/src/common/infrastructure/Logging\",{assert:{\"resolution-mode\":\"import\"}}).LoggingOptions"
+            "$ref": "#/definitions/LoggingOptions"
         },
         "mapquestKey": {
             "type": "string"
         },
         "notifiers": {
             "items": {
-                "$ref": "#/definitions/import(\"/home/foxx/code/endlessh-notifications/src/common/infrastructure/webhooks\",{assert:{\"resolution-mode\":\"import\"}}).WebhookConfig"
+                "$ref": "#/definitions/WebhookConfig"
             },
             "type": "array"
         }
