@@ -8,6 +8,30 @@ Event notification for [endlessh](https://github.com/skeeto/endlessh) and [endle
 
 <img src="/assets/discord-accept.jpg" width="449"> <img src="/assets/discord-close.jpg" width="447">
 
+<!-- TOC -->
+* [What Does It Do?](#what-does-it-do)
+* [Prerequisites](#prerequisites)
+* [Quick Start](#quick-start)
+* [Install](#install)
+  * [Docker](#docker)
+      * [Logs Mount](#logs-mount)
+      * [Config Mount](#config-mount)
+      * [Linux Host](#linux-host)
+    * [Full Example](#full-example)
+  * [Local (Node)](#local-node)
+* [Configuring Endlessh](#configuring-endlessh)
+    * [endlessh](#endlessh)
+    * [endlessh-go](#endlessh-go)
+* [Configuring Notifiers](#configuring-notifiers)
+    * [Debounce Interval](#debounce-interval)
+    * [Event Types](#event-types)
+      * [Event Filters](#event-filters)
+  * [Specific Notifiers](#specific-notifiers)
+    * [Discord](#discord)
+    * [Ntfy](#ntfy)
+    * [Gotify](#gotify)
+<!-- TOC -->
+
 # What Does It Do?
 
 endlessh-notify tails the logs from your endlessh instance and will send notifications using [Discord webhooks](https://support.discord.com/hc/en-us/articles/228383668-Intro-to-Webhooks), [ntfy](https://ntfy.sh/), and [gotify](https://gotify.net/) when any of these events occurs:
@@ -15,7 +39,7 @@ endlessh-notify tails the logs from your endlessh instance and will send notific
 * New* IP tries to connect
 * New* IP disconnect
 
-*You can control how an IP is considered "new" based on when it was last seen.
+*You can control how an IP is considered "new" based on when it was [last seen](#debounce-interval).
 
 # Prerequisites
 
@@ -45,7 +69,7 @@ docker run -d -e DISCORD_WEBHOOK="https://discord.com/api/webhooks/MY_WEBHOOK" -
 
 (Optionally) Set the [timezone](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones) for the container using the environmental variable `TZ` ([docker](https://docs.docker.com/engine/reference/commandline/run/#env)) ([docker-compose](https://docs.docker.com/compose/compose-file/compose-file-v3/#environment))
 
-#### Storage Mount
+#### Logs Mount
 
 You **must** bind the directory on the host containing the endlessh log files to `/endless` in the container.
 
