@@ -72,8 +72,7 @@ export abstract class AbstractWebhookNotifier {
             }
         }
         if(events.length === 0) {
-            // if still no events then notify on all
-            events.push({type: 'accept'});
+            // if still no events then only notify on close since it has the most interesting statistics
             events.push({type: 'close'});
         }
 
