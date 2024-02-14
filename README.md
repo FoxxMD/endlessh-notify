@@ -6,7 +6,7 @@
 
 Event notification for [endlessh](https://github.com/skeeto/endlessh) and [endlessh-go](https://github.com/shizunge/endlessh-go)
 
-<img src="/assets/discord-accept.jpg" width="458"> <img src="/assets/discord-close.jpg" width="449">
+<img src="/assets/discord-accept.jpg" width="449"> <img src="/assets/discord-close.jpg" width="447">
 
 # What Does It Do?
 
