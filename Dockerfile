@@ -5,11 +5,9 @@ ENV TZ=Etc/GMT
 RUN \
   echo "**** install build packages ****" && \
   apk add --no-cache \
-    alpine-base \
     git \
     nodejs \
-    npm \
-    openssh && \
+    npm && \
   echo "**** cleanup ****" && \
   rm -rf \
     /root/.cache \
