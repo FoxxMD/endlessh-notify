@@ -3,14 +3,14 @@ import chai, {assert} from 'chai';
 import asPromised from 'chai-as-promised';
 import {patchFs} from '@aleung/fs-monkey';
 import {Volume, createFsFromVolume} from "memfs";
-import {EndlessFileParser} from "../src/EndlessFileParser.js";
+import {EndlessFileParser} from "../../src/EndlessFileParser.js";
 import winstonDef from '@foxxmd/winston';
-import {EndlessAcceptOptions, EndlessCloseOptions, endlessh, endlesshGo} from './utils/fixtures.js';
+import {EndlessAcceptOptions, EndlessCloseOptions, endlessh, endlesshGo} from '../utils/fixtures.js';
 import TailFile from "@logdna/tail-file";
 import sinon, {spy} from 'sinon';
 import sChai from 'sinon-chai';
-import {sleep} from "../src/utils/index.js";
-import {EndlessCloseLogLine, EndlessLogLine} from "../src/common/infrastructure/Atomic.js";
+import {sleep} from "../../src/utils/index.js";
+import {EndlessCloseLogLine, EndlessLogLine} from "../../src/common/infrastructure/Atomic.js";
 import {pEvent} from 'p-event';
 
 chai.use(asPromised);

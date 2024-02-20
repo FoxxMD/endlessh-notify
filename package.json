@@ -5,7 +5,7 @@
   "type": "module",
   "main": "src/index.ts",
   "scripts": {
-    "test": "mocha --extension ts --reporter spec  --recursive tests/**/*.test.ts",
+    "test": "mocha --extension ts --reporter spec  --recursive tests/mocha/**/*.test.ts",
     "dev": "APP_VERSION=$npm_package_version nodemon -w src -x tsx src/index.ts",
     "start": "APP_VERSION=$npm_package_version NODE_ENV=production tsx src/index.ts",
     "schema": "npm run -s schema-operator",
@@ -53,6 +53,7 @@
   "devDependencies": {
     "@aleung/fs-monkey": "^1.1.1",
     "@faker-js/faker": "^8.4.1",
+    "@tapjs/tsx": "^1.1.19",
     "@types/async": "^3.2.24",
     "@types/chai": "^4.3.11",
     "@types/chai-as-promised": "^7.1.8",
@@ -70,6 +71,7 @@
     "nodemon": "^3.0.3",
     "sinon": "^17.0.1",
     "sinon-chai": "^3.7.0",
+    "tap": "^18.7.0",
     "ts-essentials": "^9.4.1",
     "typescript-json-schema": "~0.55"
   }

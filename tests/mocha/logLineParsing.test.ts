@@ -1,6 +1,6 @@
 import {before, describe, it} from 'mocha';
 import chai, {assert} from 'chai';
-import {parseEndlessLogLine, parseToAddress} from "../src/utils/index.js";
+import {parseEndlessLogLine, parseToAddress} from "../../src/utils/index.js";
 const should = chai.should();
 
 it('should throw if address is invalid', function () {

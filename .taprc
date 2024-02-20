@@ -1,0 +1,9 @@
+# vim: set filetype=yaml :
+files:
+  - tests/tap/**/*.test.ts
+  - tests/tap/*.test.ts
+plugin:
+  - "@tapjs/tsx"
+  - "!@tapjs/typescript"
+
+before: tests/utils/mochaSetup.ts

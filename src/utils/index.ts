@@ -86,7 +86,7 @@ export function difference<T = any>(valA: Set<T> | Array<T>, valB: Set<T> | Arra
     return _difference;
 }
 
-export function sleep(ms: number) {
+export function sleep(ms: number): Promise<void> {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 

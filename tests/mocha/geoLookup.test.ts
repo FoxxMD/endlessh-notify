@@ -4,9 +4,9 @@ import sinon from 'sinon';
 import asPromised from 'chai-as-promised';
 import sChai from "sinon-chai";
 import winstonDef from "@foxxmd/winston";
-import {GeoLookup} from "../src/GeoLookup.js";
+import {GeoLookup} from "../../src/GeoLookup.js";
 import {Address4} from "ip-address";
-import {IPDataResponse} from "../src/ipApi.js";
+import {IPDataResponse} from "../../src/ipApi.js";
 
 chai.use(asPromised);
 chai.use(sChai);
