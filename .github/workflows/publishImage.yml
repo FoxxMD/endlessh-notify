@@ -21,7 +21,7 @@ jobs:
     name: Build and Push Images to Registries
     runs-on: ubuntu-latest
     # only run if we've specified image tag to push to
-    if: ${{ (github.event_name == 'push' || github.event.workflow_run.conclusion == 'success') && (vars.DOCKERHUB_IMAGE_NAME != '' ||  vars.GHCR_IMAGE_NAME != '') }}
+    if: ${{ (github.event_name === 'push' || github.event.workflow_run.conclusion == 'success') && (vars.DOCKERHUB_IMAGE_NAME != '' ||  vars.GHCR_IMAGE_NAME != '') }}
     # https://docs.github.com/en/actions/security-guides/automatic-token-authentication#permissions-for-the-github_token
     permissions:
       packages: write
