@@ -12,6 +12,10 @@
     "schema-operator": "typescript-json-schema tsconfig.json OperatorJsonConfig --out src/common/schema/operator.json --required --tsNodeRegister --refs --validationKeywords deprecationMessage",
     "postinstall": "patch-package"
   },
+  "engines": {
+    "node": ">=18.19.1",
+    "npm": ">=10.2.4"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/FoxxMD/endlessh-notifications.git"
