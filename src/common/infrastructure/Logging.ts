@@ -1,4 +1,5 @@
 import {LogLevel} from "./Atomic.js";
+import {Logger} from 'pino';
 
 export interface LoggingOptions {
     /**
@@ -25,4 +26,9 @@ export interface LoggingOptions {
     db?: boolean
 
     discord?: LogLevel
+}
+
+export type LabelledLogger = Logger<never> & {
+    labels?: any[]
+    addLabel: (value: any) => void
 }

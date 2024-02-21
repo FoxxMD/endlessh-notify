@@ -13,6 +13,14 @@ import {SPLAT, LEVEL, MESSAGE} from 'triple-beam';
 import {fileOrDirectoryIsWriteable} from "../utils/io.js";
 import {capitalize} from "../utils/index.js";
 import {format} from 'logform';
+import {LabelledLogger} from "./infrastructure/Logging.js";
+import {pino, Logger as PinoLogger, P, TransportMultiOptions, destination, TransportTargetOptions} from 'pino';
+import sbDef from "sonic-boom";
+import build from 'pino-abstract-transport'
+import { once } from 'events'
+import { pipeline, Transform } from 'stream'
+import {TransformCallback} from "node:stream";
+import {write} from "node:fs";
 
 const {combine, printf, timestamp, label, splat, errors} = format;
 
@@ -362,3 +370,124 @@ export interface AppLogger extends winstonNs.Logger {
 
     child(options: Object, customzier?: (objValue: any, srcValue: any, key: any, object:any, source:any, stack:any) => any): AppLogger;
 }
+
+export const pinoLoggers: Map<string, LabelledLogger> = new Map();
+
+const testLogger: TransportTargetOptions = {
+    target: 'pino-pretty',
+    options: {
+        colorize: true,
+        sync: true
+    }
+};
+
+export const getPinoLogger = (config: LogConfig = {}, name = 'App'): LabelledLogger => {
+
+    if(pinoLoggers.has(name)) {
+        return pinoLoggers.get(name);
+    }
+
+    const errors: (Error | string)[] = [];
+
+    let options: LogOptions = {};
+    if (asLogOptions(config)) {
+        options = config;
+    } else {
+        errors.push(`Logging levels were not valid. Must be one of: 'error', 'warn', 'info', 'verbose', 'debug' -- 'file' may be false.`);
+    }
+
+    const {level: configLevel} = options;
+    const defaultLevel = process.env.LOG_LEVEL || 'info';
+    const {
+        level = configLevel || defaultLevel,
+        file = configLevel || defaultLevel,
+        console = configLevel || 'debug'
+    } = options;
+
+    const targets: TransportTargetOptions[] = [
+        {
+            target: 'pino/file',
+            level: console,
+            options: {
+                sync: true,
+                destination: 1
+            },
+        },
+        //testLogger
+    ];
+
+    if(file !== false) {
+        try {
+            fileOrDirectoryIsWriteable(logPath);
+            targets.push({
+                target: 'pino-roll',
+                level: file,
+                options: {
+                    file: path.resolve(logPath, 'app'),
+                    frequency: 'hourly',
+                    extension: '.log',
+                    mkdir: true
+                }
+            })
+        } catch (e: any) {
+            const msg = 'WILL NOT write logs to rotating file due to an error while trying to access the specified logging directory';
+            errors.push(new ErrorWithCause<Error>(msg, {cause: e as Error}));
+        }
+    }
+
+    const transportObj = pino.transport({targets});
+
+    const plogger = pino({
+        //transport: {targets},
+        // @ts-ignore
+        mixin: (obj, num, loggerThis) => {
+            return {
+                labels: loggerThis.labels ?? []
+            }
+        }
+    }, transportObj) as LabelledLogger;
+
+    plogger.addLabel = function (value) {
+        if(this.labels === undefined) {
+            this.labels = [];
+        }
+        this.labels.push(value)
+    }
+
+    return plogger;
+}
+
+export const createChildLogger = (parent: LabelledLogger, labelsVal: any | any[] = [], context: object = {}, options = {}) => {
+    const newChild = parent.child(context, options) as LabelledLogger;
+    const labels = Array.isArray(labelsVal) ? labelsVal : [labelsVal];
+    newChild.labels = [...[...(parent.labels ?? [])], ...labels];
+    newChild.addLabel = function (value) {
+        if(this.labels === undefined) {
+            this.labels = [];
+        }
+        this.labels.push(value);
+    }
+    return newChild
+}
+
+/*export async function transport(opts) {
+    // SonicBoom is necessary to avoid loops with the main thread.
+    // It is the same of pino.destination().
+    const destination = new sbDef.SonicBoom({ dest: opts.destination || 1, sync: true })
+    await once(destination, 'ready')
+
+    return build(async function (source) {
+        for await (let obj of source) {
+            const toDrain = !destination.write(obj.msg.toUpperCase() + '\n')
+            // This block will handle backpressure
+            if (toDrain) {
+                await once(destination, 'drain')
+            }
+        }
+    }, {
+        async close (err) {
+            destination.end()
+            await once(destination, 'close')
+        }
+    })
+}*/
