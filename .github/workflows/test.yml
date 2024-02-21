@@ -1,13 +1,8 @@
-name: Test
+name: Publish Docker image to Dockerhub
 
 on:
-  push:
-    branches:
-      - 'main'
-      - 'develop'
-    # don't trigger if just updating docs
-    paths-ignore:
-      - 'README.md'
+  pull_request:
+    types: [opened, synchronize, reopened]
 
 jobs:
   test:
@@ -23,5 +18,7 @@ jobs:
           cache: 'npm'
       - name: Install dev dependencies
         run: npm ci
-      - name: Test
+      - name: Build Backend
+        run: 'npm run build:backend'
+      - name: Test Backend
         run: npm run test
