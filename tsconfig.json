@@ -23,9 +23,13 @@
     "noEmit": true,
     "jsx": "react-jsx",
     "sourceMap": true,
+    "typeRoots": [
+      "tests/types"
+    ]
   },
   "include": [
-    "src/**/*.ts"
+    "src/**/*.ts",
+    "tests/**/*.ts"
   ],
   "exclude": [
     "node_modules"

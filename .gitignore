@@ -85,3 +85,4 @@ config/*.bak
 node_modules
 .idea
 endlessData
+tmp-*/

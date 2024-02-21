@@ -226,3 +226,4 @@ dist
 
 config/*.yaml
 config/logs
+tmp-*/

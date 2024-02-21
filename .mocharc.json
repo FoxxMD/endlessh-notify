@@ -1,4 +1,6 @@
 {
   "reporter": "dot",
-  "require": ["tsx", "tests/utils/mochaSetup.ts"]
+  "extension": "ts",
+  "import": "tsx/esm",
+  "require": ["tests/utils/mochaSetup.ts"]
 }

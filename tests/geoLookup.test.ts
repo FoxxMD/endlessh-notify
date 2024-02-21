@@ -28,16 +28,18 @@ const oneVal: IPDataResponse = {
     isp: "Cloudflare, Inc"
 }
 
-it('Uses cache for repeat addresses', async function () {
-    after(function() {
-        sinon.restore();
+describe('IP Geolocation', () => {
+    it('Uses cache for repeat addresses', async function () {
+        after(function() {
+            sinon.restore();
+        });
+        const lookup = new GeoLookup(logger);
+
+        const fake = sinon.replace(lookup, 'fetchExternalGeolocation', sinon.fake.returns(Promise.resolve(oneVal)))
+
+        await lookup.getInfo(testIp);
+        await lookup.getInfo(testIp);
+        await lookup.getInfo(testIp);
+        assert.equal(fake.callCount, 1)
     });
-    const lookup = new GeoLookup(logger);
-
-    const fake = sinon.replace(lookup, 'fetchExternalGeolocation', sinon.fake.returns(Promise.resolve(oneVal)))
-
-    await lookup.getInfo(testIp);
-    await lookup.getInfo(testIp);
-    await lookup.getInfo(testIp);
-    assert.equal(fake.callCount, 1)
 });
