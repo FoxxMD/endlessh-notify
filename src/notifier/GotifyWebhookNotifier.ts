@@ -1,7 +1,6 @@
 import { AbstractWebhookNotifier } from "./AbstractWebhookNotifier.js";
 import {gotify} from 'gotify';
 import got, {HTTPError} from "got";
-import {Logger} from '@foxxmd/winston';
 import {GotifyConfig, PrioritiesConfig, WebhookPayload} from "../common/infrastructure/webhooks.js";
 import {durationToHuman} from "../utils/index.js";
 import {AppLogger} from "../common/logging.js";

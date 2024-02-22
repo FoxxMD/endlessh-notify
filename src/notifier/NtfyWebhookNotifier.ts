@@ -1,7 +1,6 @@
 import { AbstractWebhookNotifier } from "./AbstractWebhookNotifier.js";
 import {Config, publish} from 'ntfy';
 import got from 'got';
-import {Logger} from '@foxxmd/winston';
 import {NtfyConfig, PrioritiesConfig, WebhookPayload} from "../common/infrastructure/webhooks.js";
 import {durationToHuman} from "../utils/index.js";
 import {AppLogger} from "../common/logging.js";

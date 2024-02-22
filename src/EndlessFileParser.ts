@@ -1,11 +1,8 @@
 import TailFile from "@logdna/tail-file";
 import {fileIsReadable} from "./utils/io.js";
 import {ErrorWithCause} from "pony-cause";
-import {Logger} from "@foxxmd/winston";
-import {EventEmitter} from "events";
 import split2 from 'split2';
-import {endlessLogLineToFriendly, mergeArr, parseEndlessLogLine} from "./utils/index.js";
-import {pEvent} from 'p-event';
+import {parseEndlessLogLine} from "./utils/index.js";
 import path from "path";
 import {EndlessLogLine} from "./common/infrastructure/Atomic.js";
 import {TypedEventEmitter} from "./utils/TypedEventEmitter.js";

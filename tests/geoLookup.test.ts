@@ -3,7 +3,6 @@ import chai, {assert} from 'chai';
 import sinon from 'sinon';
 import asPromised from 'chai-as-promised';
 import sChai from "sinon-chai";
-import winstonDef from "@foxxmd/winston";
 import {GeoLookup} from "../src/GeoLookup.js";
 import {Address4} from "ip-address";
 import {IPDataResponse} from "../src/ipApi.js";
@@ -13,8 +12,7 @@ chai.use(asPromised);
 chai.use(sChai);
 const should = chai.should();
 
-const {loggers} = winstonDef;
-const logger = testPinoLogger;// loggers.get('noop');
+const logger = testPinoLogger;
 
 const testIp = new Address4('1.1.1.1');
 

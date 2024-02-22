@@ -1,8 +1,6 @@
 import {before, describe, it} from 'mocha';
 import chai, {assert} from 'chai';
 import sinon from 'sinon';
-import {Notifiers} from "../src/notifier/Notifiers.js";
-import winstonDef, {Logger} from "@foxxmd/winston";
 import {AbstractWebhookNotifier} from "../src/notifier/AbstractWebhookNotifier.js";
 import {WebhookConfig, WebhookPayload} from '../src/common/infrastructure/webhooks.js';
 import dayjs from "dayjs";
@@ -12,8 +10,7 @@ import {DiscordWebhookNotifier} from "../src/notifier/DiscordWebhookNotifier.js"
 import {MapImageService} from "../src/MapImageService.js";
 import {AppLogger, testPinoLogger} from "../src/common/logging.js";
 
-const {loggers} = winstonDef;
-const logger = testPinoLogger; // loggers.get('noop');
+const logger = testPinoLogger;
 
 const should = chai.should();
 

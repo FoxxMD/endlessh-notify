@@ -1,12 +1,10 @@
 import {AbstractWebhookNotifier} from "./AbstractWebhookNotifier.js";
-import {Logger} from '@foxxmd/winston';
 import {APIEmbed, AttachmentBuilder, BaseMessageOptions, EmbedBuilder, WebhookClient, time} from "discord.js";
 import {DiscordConfig, WebhookPayload} from "../common/infrastructure/webhooks.js";
 import {ErrorWithCause} from "pony-cause";
 import dayjs from "dayjs";
 import {doubleReturnNewline, durationToHuman, plainTag} from "../utils/index.js";
 import {MapImageService} from "../MapImageService.js";
-import * as https from "https";
 import {AppLogger} from "../common/logging.js";
 
 export class DiscordWebhookNotifier extends AbstractWebhookNotifier {

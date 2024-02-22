@@ -1,5 +1,4 @@
-import {Logger} from '@foxxmd/winston';
-import {durationToHuman, endlessLogLineToFriendly, mergeArr, parseDuration} from "../utils/index.js";
+import {durationToHuman, parseDuration} from "../utils/index.js";
 import {
     EventTypeAccept,
     EventTypeClose,

@@ -1,4 +1,3 @@
-import winston, {Logger} from "@foxxmd/winston";
 import {configDir, projectDir} from "../index.js";
 import {readFileToString} from "../../utils/io.js";
 import {ErrorWithCause} from "pony-cause";
@@ -80,7 +79,7 @@ export const validateJson = <T>(config: object, schema: Schema, logger: AppLogge
 
 export const parseConfigFromSources = async (operatorDir: string) => {
 
-    const initLogger = initPinoLogger;// winston.loggers.get('init') as AppLogger;
+    const initLogger = initPinoLogger;
 
     let configDoc: YamlOperatorConfigDocument
     

@@ -2,7 +2,6 @@ import {before, describe, it} from 'mocha';
 import chai, {assert} from 'chai';
 import asPromised from 'chai-as-promised';
 import {EndlessFileParser} from "../src/EndlessFileParser.js";
-import winstonDef from '@foxxmd/winston';
 import {endlessh, endlesshGo} from './utils/fixtures.js';
 import TailFile from "@logdna/tail-file";
 import sinon, {spy} from 'sinon';
@@ -16,8 +15,6 @@ import {testPinoLogger} from "../src/common/logging.js";
 chai.use(asPromised);
 chai.use(sChai);
 const should = chai.should();
-
-const {loggers} = winstonDef;
 
 const logger = testPinoLogger; // loggers.get('noop');
 

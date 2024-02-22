@@ -3,8 +3,6 @@ import {IPDataFields} from "./common/infrastructure/Atomic.js";
 import {Address4, Address6} from "ip-address";
 import {defaultApiApiQuery, getIpGeolocation, IPDataResponse} from "./ipApi.js";
 import {ErrorWithCause} from "pony-cause";
-import {Logger} from "@foxxmd/winston";
-import {mergeArr} from "./utils/index.js";
 import {AppLogger, createChildLogger} from "./common/logging.js";
 
 export class GeoLookup {

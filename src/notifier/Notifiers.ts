@@ -1,4 +1,3 @@
-import winston, {config, format, Logger} from '@foxxmd/winston';
 import {AbstractWebhookNotifier} from "./AbstractWebhookNotifier.js";
 import {GotifyWebhookNotifier} from "./GotifyWebhookNotifier.js";
 import {NtfyWebhookNotifier} from "./NtfyWebhookNotifier.js";

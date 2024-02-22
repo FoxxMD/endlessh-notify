@@ -6,8 +6,7 @@ import {
     IPDataFields
 } from "./common/infrastructure/Atomic.js";
 import {TypedEventEmitter} from "./utils/TypedEventEmitter.js";
-import {Logger} from "@foxxmd/winston";
-import {mergeArr, sleep} from "./utils/index.js";
+import {sleep} from "./utils/index.js";
 import {queue, QueueObject} from 'async';
 import {GeoLookup} from "./GeoLookup.js";
 import {AppLogger, createChildLogger} from "./common/logging.js";
