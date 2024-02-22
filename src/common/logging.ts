@@ -213,7 +213,7 @@ export const appPinoLogger = async (config: LogConfig = {}, name = 'App') => {
     const options = buildParsedLogOptions(config);
     const stream = buildPinoConsoleStream(options);
     const file = await buildPinoFileStream(options);
-    return buildPinoLogger(options.level as Level, [stream, file]);
+    return buildPinoLogger('debug' as Level, [stream, file]);
 }
 
 export const createChildPinoLogger = (parent: LabelledLogger, labelsVal: any | any[] = [], context: object = {}, options = {}) => {
