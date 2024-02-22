@@ -11,6 +11,7 @@ import {sleep} from "../src/utils/index.js";
 import {pEvent} from 'p-event';
 import * as fs from 'fs';
 import withLocalTmpDir from 'with-local-tmp-dir';
+import {testPinoLogger} from "../src/common/logging.js";
 
 chai.use(asPromised);
 chai.use(sChai);
@@ -18,7 +19,7 @@ const should = chai.should();
 
 const {loggers} = winstonDef;
 
-const logger = loggers.get('noop');
+const logger = testPinoLogger; // loggers.get('noop');
 
 const endlessFlavors = [{name: 'endlessh', util: endlessh}, {name: 'endless-go', util: endlesshGo}];
 const defaultFlavor = endlessFlavors[0];

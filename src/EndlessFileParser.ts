@@ -9,6 +9,7 @@ import {pEvent} from 'p-event';
 import path from "path";
 import {EndlessLogLine} from "./common/infrastructure/Atomic.js";
 import {TypedEventEmitter} from "./utils/TypedEventEmitter.js";
+import {AppLogger, createChildLogger} from "./common/logging.js";
 
 const endlessFileNames = ['current', 'endlessh.INFO'];
 
@@ -20,12 +21,12 @@ type EndlessFileEventTypes = {
 export class EndlessFileParser extends TypedEventEmitter<EndlessFileEventTypes> {
 
     tailFile: TailFile;
-    logger: Logger;
+    logger: AppLogger;
 
-    constructor(file: TailFile, logger: Logger) {
+    constructor(file: TailFile, logger: AppLogger) {
         super();
         this.tailFile = file;
-        this.logger = logger.child({labels: ['Parser']}, mergeArr);
+        this.logger = createChildLogger(logger, 'Parser'); //logger.child({labels: ['Parser']}, mergeArr);
     }
 
     public async start() {
@@ -73,8 +74,8 @@ export class EndlessFileParser extends TypedEventEmitter<EndlessFileEventTypes> 
         }
     }
 
-    public static async fromFile(dir: string, logger: Logger) {
-        const childLogger = logger.child({labels: ['Parser']}, mergeArr);
+    public static async fromFile(dir: string, logger: AppLogger) {
+        const childLogger = createChildLogger(logger, 'Parser'); // logger.child({labels: ['Parser']}, mergeArr);
         for(const name of endlessFileNames) {
             const filePath = path.resolve(dir, `./${name}`);
             childLogger.info(`Attempting to open log file => ${filePath}`);

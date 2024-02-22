@@ -16,11 +16,11 @@ import * as AjvNS from 'ajv';
 import Ajv from 'ajv';
 import {LogLevel} from "../infrastructure/Atomic.js";
 import {overwriteMerge} from "../../utils/index.js";
-import {AppLogger} from "../logging.js";
+import {AppLogger, getPinoLogger, initPinoLogger} from "../logging.js";
 import {DiscordConfig, GotifyConfig, NtfyConfig, WebhookConfig} from "../infrastructure/webhooks.js";
 import path from "path";
 
-export const createAjvFactory = (logger: Logger): AjvNS.default => {
+export const createAjvFactory = (logger: AppLogger): AjvNS.default => {
     const validator =  new Ajv.default({logger: logger, verbose: true, strict: "log", allowUnionTypes: true});
     // https://ajv.js.org/strict-mode.html#unknown-keywords
     validator.addKeyword('deprecationMessage');
@@ -80,7 +80,7 @@ export const validateJson = <T>(config: object, schema: Schema, logger: AppLogge
 
 export const parseConfigFromSources = async (operatorDir: string) => {
 
-    const initLogger = winston.loggers.get('init') as AppLogger;
+    const initLogger = initPinoLogger;// winston.loggers.get('init') as AppLogger;
 
     let configDoc: YamlOperatorConfigDocument
     

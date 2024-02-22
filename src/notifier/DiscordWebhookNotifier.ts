@@ -7,6 +7,7 @@ import dayjs from "dayjs";
 import {doubleReturnNewline, durationToHuman, plainTag} from "../utils/index.js";
 import {MapImageService} from "../MapImageService.js";
 import * as https from "https";
+import {AppLogger} from "../common/logging.js";
 
 export class DiscordWebhookNotifier extends AbstractWebhookNotifier {
 
@@ -14,7 +15,7 @@ export class DiscordWebhookNotifier extends AbstractWebhookNotifier {
     imageService: MapImageService;
     client: WebhookClient;
 
-    constructor(defaultName: string, config: DiscordConfig, imageService: MapImageService, logger: Logger) {
+    constructor(defaultName: string, config: DiscordConfig, imageService: MapImageService, logger: AppLogger) {
         super('Discord', defaultName, config, logger);
         this.requiresAuth = false;
         this.client = new WebhookClient({url: config.webhook})

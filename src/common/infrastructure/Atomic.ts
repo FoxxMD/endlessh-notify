@@ -2,8 +2,8 @@ import {MESSAGE} from 'triple-beam';
 import {Dayjs} from "dayjs";
 import {Address4, Address6} from "ip-address";
 import {Duration} from "dayjs/plugin/duration.js";
-export type LogLevel = "error" | "warn" | "safety" | "info" | "verbose" | "debug";
-export const logLevels = ['error', 'warn', 'info', 'verbose', 'debug'];
+export type LogLevel = "error" | "warn" | "safety" | "info" | "verbose" | "debug" | "silent";
+export const logLevels = ['error', 'warn', 'info', 'verbose', 'debug', 'silent'];
 
 export type ConfigFormat = 'yaml';
 
@@ -30,8 +30,6 @@ export interface LogOptions {
      * Specify the minimum log level streamed to the console (or docker container)
      * */
     console?: LogLevel
-
-    db?: boolean
 }
 
 export const asLogOptions = (obj: LogConfig = {}): obj is LogOptions => {

@@ -15,6 +15,7 @@ import {DiscordWebhookNotifier} from "./DiscordWebhookNotifier.js";
 import {queue, QueueObject} from 'async';
 import {EndlessLog} from "../common/infrastructure/Atomic.js";
 import {MapImageService} from "../MapImageService.js";
+import {AppLogger, createChildLogger} from "../common/logging.js";
 
 interface NotifyTask {
     log: EndlessLog
@@ -22,7 +23,7 @@ interface NotifyTask {
 
 export class Notifiers {
 
-    logger: Logger;
+    logger: AppLogger;
 
     webhooks: AbstractWebhookNotifier[] = [];
 
@@ -32,9 +33,9 @@ export class Notifiers {
 
     queue: QueueObject<NotifyTask>;
 
-    constructor(logger: Logger, mapquestKey?: string) {
+    constructor(logger: AppLogger, mapquestKey?: string) {
 
-        this.logger = logger.child({labels: ['Notifiers']}, mergeArr);
+        this.logger = createChildLogger(logger, 'Notifiers'); // logger.child({labels: ['Notifiers']}, mergeArr);
         this.queue = this.generateQueue();
         this.queue.error((err, task) => {
            this.logger.warn(err);

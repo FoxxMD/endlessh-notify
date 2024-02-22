@@ -5,13 +5,14 @@ import {defaultApiApiQuery, getIpGeolocation, IPDataResponse} from "./ipApi.js";
 import {ErrorWithCause} from "pony-cause";
 import {Logger} from "@foxxmd/winston";
 import {mergeArr} from "./utils/index.js";
+import {AppLogger, createChildLogger} from "./common/logging.js";
 
 export class GeoLookup {
     cache: LRUCache<string, IPDataFields> = new LRUCache({max: 500})
-    logger: Logger
+    logger: AppLogger
 
-    constructor(logger: Logger) {
-        this.logger = logger.child({labels: ['Geo Lookup']}, mergeArr)
+    constructor(logger: AppLogger) {
+        this.logger = createChildLogger(logger, 'Geo Lookup'); // logger.child({labels: ['Geo Lookup']}, mergeArr)
 
     }
 

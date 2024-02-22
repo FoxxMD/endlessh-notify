@@ -10,15 +10,16 @@ import {Address4} from "ip-address";
 import {sleep} from "../src/utils/index.js";
 import {DiscordWebhookNotifier} from "../src/notifier/DiscordWebhookNotifier.js";
 import {MapImageService} from "../src/MapImageService.js";
+import {AppLogger, testPinoLogger} from "../src/common/logging.js";
 
 const {loggers} = winstonDef;
-const logger = loggers.get('noop');
+const logger = testPinoLogger; // loggers.get('noop');
 
 const should = chai.should();
 
 class TestNotifier extends AbstractWebhookNotifier {
 
-    constructor(type: string, defaultName: string, config: WebhookConfig, logger: Logger) {
+    constructor(type: string, defaultName: string, config: WebhookConfig, logger: AppLogger) {
         super(type, defaultName, config, logger);
         this.initialized = true;
     }

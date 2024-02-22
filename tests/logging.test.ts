@@ -1,6 +1,6 @@
 import {it} from "mocha";
 import chai, {assert} from 'chai';
-import {createChildLogger, getPinoLogger} from "../src/common/logging.js";
+import {createChildPinoLogger, getPinoLogger} from "../src/common/logging.js";
 import {sleep} from "../src/utils/index.js";
 import {ErrorWithCause} from "pony-cause";
 
@@ -9,7 +9,7 @@ it('Outputs pino logs as I expect', async function() {
     const logger = await getPinoLogger();
     logger.info({random: true}, 'This has no labels');
 
-    const child = createChildLogger(logger, 'child1');
+    const child = createChildPinoLogger(logger, 'child1');
     child.debug('Has child1 label');
 
     logger.error({err: new Error('an actual error')}, 'A regular message with a keyed error object');
@@ -28,7 +28,7 @@ it('Outputs pino logs as I expect', async function() {
 
     child.warn('Does not have parentLabel');
 
-    const deeperChild = createChildLogger(child, ['child2','deep']);
+    const deeperChild = createChildPinoLogger(child, ['child2','deep']);
     deeperChild.info('Has child1 child2 and deep');
     deeperChild.error(new Error('Just a plain error'));
     child.error('Only has child1');

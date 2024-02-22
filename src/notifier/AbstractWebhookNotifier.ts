@@ -12,11 +12,12 @@ import {ErrorWithCause} from "pony-cause";
 import TTLCache from '@isaacs/ttlcache';
 import dayjs, {Dayjs} from "dayjs";
 import {EndlessCloseLogLine} from "../common/infrastructure/Atomic.js";
+import {AppLogger, createChildLogger} from "../common/logging.js";
 
 interface HydratedEventTypeCommon extends Omit<EventTypeCommon, 'debounceInterval'> {
     debounceInterval: Duration
     cache: TTLCache<string, Dayjs>
-    logger: Logger
+    logger: AppLogger
 }
 
 type HydratedEventTypeAccept = Omit<EventTypeAccept, 'debounceInterval'> & HydratedEventTypeCommon
@@ -31,7 +32,7 @@ type HydratedEventTypeClose = HydratedEventTypeCommon & Omit<EventTypeClose, 'de
 export abstract class AbstractWebhookNotifier {
 
     config: WebhookConfig
-    logger: Logger;
+    logger: AppLogger;
 
     initialized: boolean = false;
     requiresAuth: boolean = false;
@@ -44,10 +45,10 @@ export abstract class AbstractWebhookNotifier {
     acceptEvents: HydratedEventTypeAccept[] = [];
     closeEvents: HydratedEventTypeClose[] = [];
 
-    protected constructor(notifierType: string, defaultName: string, config: WebhookConfig, logger: Logger) {
+    protected constructor(notifierType: string, defaultName: string, config: WebhookConfig, logger: AppLogger) {
         this.config = config;
         const label = `${notifierType} - ${config.name ?? defaultName}`
-        this.logger = logger.child({labels: [label]}, mergeArr);
+        this.logger = createChildLogger(logger, label); //logger.child({labels: [label]}, mergeArr);
         try {
             this.ttlStr = config.debounceInterval ?? '1 day';
             this.ttl = parseDuration(this.ttlStr);
@@ -106,7 +107,7 @@ export abstract class AbstractWebhookNotifier {
                 minTotalConnections,
                 maxTotalConnections,
                 cache: new TTLCache<string, Dayjs>({ max: 500, ttl: dur.asMilliseconds()}),
-                logger: this.logger.child({labels: [eventName]}, mergeArr)
+                logger: createChildLogger(this.logger, eventName) //this.logger.child({labels: [eventName]}, mergeArr)
             }
             if(eventType === 'accept') {
                 const hAcceptEvent: HydratedEventTypeAccept = {

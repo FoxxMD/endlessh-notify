@@ -3,15 +3,16 @@ import {LRUCache} from "lru-cache";
 import {mergeArr} from "./utils/index.js";
 import {ErrorWithCause} from "pony-cause";
 import got from 'got';
+import {AppLogger, createChildLogger} from "./common/logging.js";
 
 export class MapImageService {
 
     mapquestKey?: string;
     imageCache: LRUCache<string, Buffer> = new LRUCache({max: 100});
-    logger: Logger;
+    logger: AppLogger;
 
-    constructor(logger: Logger, mapquestKey?: string) {
-        this.logger = logger.child({labels: ['Map Image']}, mergeArr);
+    constructor(logger: AppLogger, mapquestKey?: string) {
+        this.logger = createChildLogger(logger, 'Map Image'); // logger.child({labels: ['Map Image']}, mergeArr);
         this.mapquestKey = mapquestKey;
         if (this.mapquestKey !== undefined) {
             this.logger.info('Mapquest Key found. Will generate map images for Discord notifiers.');

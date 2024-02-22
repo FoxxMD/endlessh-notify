@@ -28,7 +28,7 @@ export interface LoggingOptions {
     discord?: LogLevel
 }
 
-export type LabelledLogger = Logger<"verbose"> & {
+export type LabelledLogger = Logger<"verbose" | "log"> & {
     labels?: any[]
     addLabel: (value: any) => void
 }

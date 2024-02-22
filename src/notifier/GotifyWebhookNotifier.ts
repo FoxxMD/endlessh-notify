@@ -4,6 +4,7 @@ import got, {HTTPError} from "got";
 import {Logger} from '@foxxmd/winston';
 import {GotifyConfig, PrioritiesConfig, WebhookPayload} from "../common/infrastructure/webhooks.js";
 import {durationToHuman} from "../utils/index.js";
+import {AppLogger} from "../common/logging.js";
 
 export class GotifyWebhookNotifier extends AbstractWebhookNotifier {
 
@@ -11,7 +12,7 @@ export class GotifyWebhookNotifier extends AbstractWebhookNotifier {
 
     priorities: PrioritiesConfig;
 
-    constructor(defaultName: string, config: GotifyConfig, logger: Logger) {
+    constructor(defaultName: string, config: GotifyConfig, logger: AppLogger) {
         super('Gotify', defaultName, config, logger);
         this.requiresAuth = true;
         const {

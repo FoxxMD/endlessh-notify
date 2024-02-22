@@ -7,13 +7,14 @@ import winstonDef from "@foxxmd/winston";
 import {GeoLookup} from "../src/GeoLookup.js";
 import {Address4} from "ip-address";
 import {IPDataResponse} from "../src/ipApi.js";
+import {testPinoLogger} from "../src/common/logging.js";
 
 chai.use(asPromised);
 chai.use(sChai);
 const should = chai.should();
 
 const {loggers} = winstonDef;
-const logger = loggers.get('noop');
+const logger = testPinoLogger;// loggers.get('noop');
 
 const testIp = new Address4('1.1.1.1');
 

@@ -7,7 +7,7 @@ import timezone from 'dayjs/plugin/timezone.js';
 import path from "path";
 import {projectDir} from "./common/index.js";
 import {Logger} from "@foxxmd/winston";
-import {getLogger} from "./common/logging.js";
+import {AppLogger, appPinoLogger, getLogger, getPinoLogger, initPinoLogger} from "./common/logging.js";
 import {ErrorWithCause} from "pony-cause";
 import {parseConfigFromSources} from "./common/config/ConfigBuilder.js";
 import {Notifiers} from "./notifier/Notifiers.js";
@@ -24,9 +24,9 @@ dayjs.extend(relativeTime);
 dayjs.extend(duration);
 dayjs.extend(timezone);
 
-const initLogger = getLogger({file: false}, 'init');
+const initLogger = initPinoLogger; // getLogger({file: false}, 'init');
 
-let logger: Logger;
+let logger: AppLogger;
 
 process.on('uncaughtExceptionMonitor', (err, origin) => {
     const appError = new ErrorWithCause(`Uncaught exception is crashing the app! :( Type: ${origin}`, {cause: err});
@@ -49,7 +49,7 @@ const configDir = process.env.CONFIG_DIR || path.resolve(projectDir, `./config`)
             logging = {},
         } = config;
 
-        logger = getLogger(logging);
+        logger = await appPinoLogger(logging);
 
         const statsCache = new LRUCache<string, EndlessLogStats>({max: 1000});
 

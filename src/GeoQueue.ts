@@ -10,6 +10,7 @@ import {Logger} from "@foxxmd/winston";
 import {mergeArr, sleep} from "./utils/index.js";
 import {queue, QueueObject} from 'async';
 import {GeoLookup} from "./GeoLookup.js";
+import {AppLogger, createChildLogger} from "./common/logging.js";
 
 type GeoHydratedLogLineEvents = {
     'log': [log: EndlessLog]
@@ -21,13 +22,13 @@ interface GeoTask {
 
 export class GeoQueue extends TypedEventEmitter<GeoHydratedLogLineEvents> {
 
-    logger: Logger;
+    logger: AppLogger;
     queue: QueueObject<GeoTask>
     lookup: GeoLookup;
 
-    constructor(logger: Logger) {
+    constructor(logger: AppLogger) {
         super();
-        this.logger = logger.child({labels: ['Geo Queue']}, mergeArr);
+        this.logger = createChildLogger(logger, 'Geo Queue');// logger.child({labels: ['Geo Queue']}, mergeArr);
         this.lookup = new GeoLookup(this.logger);
         this.queue = this.generateQueue();
         this.queue.error((err, task) => {

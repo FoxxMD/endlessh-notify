@@ -4,6 +4,7 @@ import got from 'got';
 import {Logger} from '@foxxmd/winston';
 import {NtfyConfig, PrioritiesConfig, WebhookPayload} from "../common/infrastructure/webhooks.js";
 import {durationToHuman} from "../utils/index.js";
+import {AppLogger} from "../common/logging.js";
 
 export class NtfyWebhookNotifier extends AbstractWebhookNotifier {
 
@@ -11,7 +12,7 @@ export class NtfyWebhookNotifier extends AbstractWebhookNotifier {
 
     priorities: PrioritiesConfig;
 
-    constructor(defaultName: string, config: NtfyConfig, logger: Logger) {
+    constructor(defaultName: string, config: NtfyConfig, logger: AppLogger) {
         super('Ntfy', defaultName, config, logger);
         const {
             info = 3,

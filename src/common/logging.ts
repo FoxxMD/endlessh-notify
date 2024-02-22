@@ -1,7 +1,7 @@
 import path from "path";
 import {configDir} from "./index.js";
 import * as winstonNs from '@foxxmd/winston';
-import winstonDef, {config, verbose} from '@foxxmd/winston';
+import winstonDef, {config, level, verbose} from '@foxxmd/winston';
 import {asLogOptions, LogConfig, LogInfo, LogInfoMeta, LogLevel, LogOptions} from "./infrastructure/Atomic.js";
 import process from "process";
 import {ErrorWithCause, stackWithCauses} from "pony-cause";
@@ -11,7 +11,7 @@ import dayjs from "dayjs";
 import stringify from 'safe-stable-stringify';
 import {SPLAT, LEVEL, MESSAGE} from 'triple-beam';
 import {fileOrDirectoryIsWriteable} from "../utils/io.js";
-import {capitalize} from "../utils/index.js";
+import {capitalize, mergeArr} from "../utils/index.js";
 import {format} from 'logform';
 import {LabelledLogger} from "./infrastructure/Logging.js";
 import {
@@ -38,7 +38,9 @@ if(!loggers.has('noop')) {
     loggers.add('noop', {transports: [new NullTransport()]});
 }
 
-export const getLogger = (config: LogConfig = {}, name = 'App'): AppLogger => {
+export type AppLogger = WinstonLogger | LabelledLogger;
+
+export const getLogger = (config: LogConfig = {}, name = 'App'): WinstonLogger => {
 
     if (!loggers.has(name)) {
         const errors: (Error | string)[] = [];
@@ -100,9 +102,9 @@ export const getLogger = (config: LogConfig = {}, name = 'App'): AppLogger => {
                 logger.error(e);
             }
         }
-        return logger as AppLogger;
+        return logger as WinstonLogger;
     }
-    return loggers.get(name) as AppLogger;
+    return loggers.get(name) as WinstonLogger;
 }
 
 const breakSymbol = '<br />';
@@ -349,14 +351,14 @@ const _transformError = (err: Error, seen: Set<Error>) => {
 }
 
 interface LeveledLogMethod {
-    (message: string, callback: winstonNs.LogCallback): AppLogger;
-    (message: string, meta: LogInfoMeta, callback: winstonNs.LogCallback): AppLogger;
-    (message: string, ...meta: LogInfoMeta[]): AppLogger;
-    (message: any, meta: LogInfoMeta): AppLogger;
-    (infoObject: object): AppLogger;
+    (message: string, callback: winstonNs.LogCallback): WinstonLogger;
+    (message: string, meta: LogInfoMeta, callback: winstonNs.LogCallback): WinstonLogger;
+    (message: string, ...meta: LogInfoMeta[]): WinstonLogger;
+    (message: any, meta: LogInfoMeta): WinstonLogger;
+    (infoObject: object): WinstonLogger;
 }
 
-export interface AppLogger extends winstonNs.Logger {
+export interface WinstonLogger extends winstonNs.Logger {
     error: LeveledLogMethod;
     warn: LeveledLogMethod;
     help: LeveledLogMethod;
@@ -370,7 +372,7 @@ export interface AppLogger extends winstonNs.Logger {
     input: LeveledLogMethod;
     silly: LeveledLogMethod;
 
-    child(options: Object, customzier?: (objValue: any, srcValue: any, key: any, object:any, source:any, stack:any) => any): AppLogger;
+    child(options: Object, customzier?: (objValue: any, srcValue: any, key: any, object:any, source:any, stack:any) => any): WinstonLogger;
 }
 
 export const pinoLoggers: Map<string, LabelledLogger> = new Map();
@@ -404,9 +406,10 @@ const prettyCommon = (colors: Colorette.Colorette): PrettyOptions => {
         ignore: 'pid,hostname,labels,err',
         translateTime: 'SYS:standard',
         customLevels: {
-            verbose: 25
+            verbose: 25,
+            log: 21,
         },
-        customColors: 'verbose:magenta',
+        customColors: 'verbose:magenta,log:greenBright',
         colorizeObjects: true,
         // @ts-ignore
         useOnlyCustomProps: false,
@@ -417,6 +420,26 @@ const prettyConsole: PrettyOptions = prettyOptsFactory()
 const prettyFile: PrettyOptions = prettyOptsFactory({
     colorize: false,
 });
+
+const buildParsedLogOptions = (config: LogConfig = {}): Required<LogOptions> => {
+    if (!asLogOptions(config)) {
+        throw new Error(`Logging levels were not valid. Must be one of: 'error', 'warn', 'info', 'verbose', 'debug', 'silent' -- 'file' may be false.`)
+    }
+
+    const {level: configLevel} = config;
+    const defaultLevel = process.env.LOG_LEVEL || 'info';
+    const {
+        level = configLevel || defaultLevel,
+        file = configLevel || defaultLevel,
+        console = configLevel || 'debug'
+    } = config;
+
+    return {
+        level: level as LogLevel,
+        file: file as LogLevel | false,
+        console
+    };
+}
 
 export const getPinoLogger = async (config: LogConfig = {}, name = 'App'): Promise<LabelledLogger> => {
 
@@ -430,7 +453,7 @@ export const getPinoLogger = async (config: LogConfig = {}, name = 'App'): Promi
     if (asLogOptions(config)) {
         options = config;
     } else {
-        errors.push(`Logging levels were not valid. Must be one of: 'error', 'warn', 'info', 'verbose', 'debug' -- 'file' may be false.`);
+        errors.push(`Logging levels were not valid. Must be one of: 'error', 'warn', 'info', 'verbose', 'debug', 'silent' -- 'file' may be false.`);
     }
 
     const {level: configLevel} = options;
@@ -444,7 +467,7 @@ export const getPinoLogger = async (config: LogConfig = {}, name = 'App'): Promi
     const streams: StreamEntry[] = [
         {
             level: configLevel as Level,
-            stream: prettyDef.default({...prettyConsole, destination: 1, sync: true}) //destination({dest: 1, sync: true})
+            stream: prettyDef.default({...prettyConsole, destination: 1, sync: true})
         }
     ]
 
@@ -470,6 +493,45 @@ export const getPinoLogger = async (config: LogConfig = {}, name = 'App'): Promi
         }
     }
 
+    const plogger = buildPinoLogger(level as Level, streams);
+    pinoLoggers.set(name, plogger);
+    return plogger;
+}
+
+const buildPinoFileStream = async (options: Required<LogOptions>): Promise<StreamEntry | undefined> => {
+    const {file} = options;
+    if(file === false) {
+        return undefined;
+    }
+
+    try {
+        fileOrDirectoryIsWriteable(logPath);
+        const rollingDest = await pRoll({
+            file: path.resolve(logPath, 'app'),
+            size: 10,
+            frequency: 'daily',
+            get extension() {return `-${dayjs().format('YYYY-MM-DD')}.log`},// '.log',
+            mkdir: true,
+            sync: false,
+        });
+
+        return {
+            level: file as Level,
+            stream: prettyDef.default({...prettyFile, destination: rollingDest})
+        };
+    } catch (e: any) {
+        throw new ErrorWithCause<Error>('WILL NOT write logs to rotating file due to an error while trying to access the specified logging directory', {cause: e as Error});
+    }
+}
+
+const buildPinoConsoleStream = (options: Required<LogOptions>): StreamEntry => {
+    return {
+        level: options.console as Level,
+        stream: prettyDef.default({...prettyConsole, destination: 1, sync: true})
+    }
+}
+
+const buildPinoLogger = (defaultLevel: Level, streams: StreamEntry[]): LabelledLogger => {
     const plogger = pino({
         // @ts-ignore
         mixin: (obj, num, loggerThis) => {
@@ -477,24 +539,35 @@ export const getPinoLogger = async (config: LogConfig = {}, name = 'App'): Promi
                 labels: loggerThis.labels ?? []
             }
         },
-        level: 'debug',
+        level: defaultLevel,
         customLevels: {
-            verbose: 25
+            verbose: 25,
+            log: 21
         },
         useOnlyCustomLevels: false,
     }, pino.multistream(streams)) as LabelledLogger;
 
     plogger.addLabel = function (value) {
-        if(this.labels === undefined) {
+        if (this.labels === undefined) {
             this.labels = [];
         }
         this.labels.push(value)
     }
-
     return plogger;
 }
 
-export const createChildLogger = (parent: LabelledLogger, labelsVal: any | any[] = [], context: object = {}, options = {}) => {
+export const testPinoLogger = buildPinoLogger(('silent' as Level), [buildPinoConsoleStream(buildParsedLogOptions({level: 'silent'}))]);
+
+export const initPinoLogger = buildPinoLogger(('debug' as Level), [buildPinoConsoleStream(buildParsedLogOptions({level: 'debug'}))]);
+
+export const appPinoLogger = async (config: LogConfig = {}, name = 'App') => {
+    const options = buildParsedLogOptions(config);
+    const stream = buildPinoConsoleStream(options);
+    const file = await buildPinoFileStream(options);
+    return buildPinoLogger(options.level as Level, [stream, file]);
+}
+
+export const createChildPinoLogger = (parent: LabelledLogger, labelsVal: any | any[] = [], context: object = {}, options = {}) => {
     const newChild = parent.child(context, options) as LabelledLogger;
     const labels = Array.isArray(labelsVal) ? labelsVal : [labelsVal];
     newChild.labels = [...[...(parent.labels ?? [])], ...labels];
@@ -505,4 +578,16 @@ export const createChildLogger = (parent: LabelledLogger, labelsVal: any | any[]
         this.labels.push(value);
     }
     return newChild
+}
+
+export const createChildWinstonLogger = (logger: WinstonLogger, meta: object): WinstonLogger => {
+    return logger.child(meta, mergeArr);
+}
+
+export const createChildLogger = (logger: AppLogger, labelsVal: any | any[] = []): AppLogger => {
+    const labels = Array.isArray(labelsVal) ? labelsVal : [labelsVal];
+    if('bindings' in logger) {
+        return createChildPinoLogger(logger as LabelledLogger, labels);
+    }
+    return createChildWinstonLogger(logger as WinstonLogger, {labels});
 }
