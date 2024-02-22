@@ -1,7 +1,7 @@
 import path from "path";
 import {configDir} from "./index.js";
 import * as winstonNs from '@foxxmd/winston';
-import winstonDef from '@foxxmd/winston';
+import winstonDef, {config, verbose} from '@foxxmd/winston';
 import {asLogOptions, LogConfig, LogInfo, LogInfoMeta, LogLevel, LogOptions} from "./infrastructure/Atomic.js";
 import process from "process";
 import {ErrorWithCause, stackWithCauses} from "pony-cause";
@@ -14,13 +14,15 @@ import {fileOrDirectoryIsWriteable} from "../utils/io.js";
 import {capitalize} from "../utils/index.js";
 import {format} from 'logform';
 import {LabelledLogger} from "./infrastructure/Logging.js";
-import {pino, Logger as PinoLogger, P, TransportMultiOptions, destination, TransportTargetOptions} from 'pino';
-import sbDef from "sonic-boom";
-import build from 'pino-abstract-transport'
-import { once } from 'events'
-import { pipeline, Transform } from 'stream'
-import {TransformCallback} from "node:stream";
-import {write} from "node:fs";
+import {
+    pino,
+    TransportTargetOptions,
+    Level, StreamEntry,
+} from 'pino';
+import pRoll from 'pino-roll';
+import prettyDef, {PrettyOptions, PinoPretty, colorizerFactory} from 'pino-pretty';
+import {createColors} from 'colorette';
+import * as Colorette from "colorette";
 
 const {combine, printf, timestamp, label, splat, errors} = format;
 
@@ -373,15 +375,50 @@ export interface AppLogger extends winstonNs.Logger {
 
 export const pinoLoggers: Map<string, LabelledLogger> = new Map();
 
-const testLogger: TransportTargetOptions = {
-    target: 'pino-pretty',
-    options: {
-        colorize: true,
-        sync: true
-    }
-};
+const prettyOptsFactory = (opts: PrettyOptions = {}) => {
+    const {colorize} = opts;
+    const colorizeOpts: undefined | {useColor: boolean} = colorize === undefined ? undefined : {useColor: colorize};
+    const colors = createColors(colorizeOpts)
 
-export const getPinoLogger = (config: LogConfig = {}, name = 'App'): LabelledLogger => {
+    return {
+        ...prettyCommon(colors),
+        ...opts
+    }
+}
+
+const prettyCommon = (colors: Colorette.Colorette): PrettyOptions => {
+    return {
+        messageFormat: (log, messageKey) => {
+            const labels: string[] = log.labels as string[] ?? [];
+            const leaf = log.leaf as string | undefined;
+            const nodes = labels;
+            if (leaf !== null && leaf !== undefined && !nodes.includes(leaf)) {
+                nodes.push(leaf);
+            }
+            const labelContent = nodes.length === 0 ? '' : `${nodes.map((x: string) => colors.blackBright(`[${x}]`)).join(' ')} `;
+            const msg = log[messageKey];
+            const stackTrace = log.err !== undefined ? `\n${(log.err as any).stack}` : '';
+            return `${labelContent}${msg}${stackTrace}`;
+        },
+        hideObject: false,
+        ignore: 'pid,hostname,labels,err',
+        translateTime: 'SYS:standard',
+        customLevels: {
+            verbose: 25
+        },
+        customColors: 'verbose:magenta',
+        colorizeObjects: true,
+        // @ts-ignore
+        useOnlyCustomProps: false,
+    }
+}
+
+const prettyConsole: PrettyOptions = prettyOptsFactory()
+const prettyFile: PrettyOptions = prettyOptsFactory({
+    colorize: false,
+});
+
+export const getPinoLogger = async (config: LogConfig = {}, name = 'App'): Promise<LabelledLogger> => {
 
     if(pinoLoggers.has(name)) {
         return pinoLoggers.get(name);
@@ -404,30 +441,28 @@ export const getPinoLogger = (config: LogConfig = {}, name = 'App'): LabelledLog
         console = configLevel || 'debug'
     } = options;
 
-    const targets: TransportTargetOptions[] = [
+    const streams: StreamEntry[] = [
         {
-            target: 'pino/file',
-            level: console,
-            options: {
-                sync: true,
-                destination: 1
-            },
-        },
-        //testLogger
-    ];
+            level: configLevel as Level,
+            stream: prettyDef.default({...prettyConsole, destination: 1, sync: true}) //destination({dest: 1, sync: true})
+        }
+    ]
 
     if(file !== false) {
         try {
             fileOrDirectoryIsWriteable(logPath);
-            targets.push({
-                target: 'pino-roll',
-                level: file,
-                options: {
-                    file: path.resolve(logPath, 'app'),
-                    frequency: 'hourly',
-                    extension: '.log',
-                    mkdir: true
-                }
+            const rollingDest = await pRoll({
+                file: path.resolve(logPath, 'app'),
+                size: 10,
+                frequency: 'daily',
+                get extension() {return `-${dayjs().format('YYYY-MM-DD')}.log`},// '.log',
+                mkdir: true,
+                sync: false,
+            });
+
+            streams.push({
+                level: file as Level,
+                stream: prettyDef.default({...prettyFile, destination: rollingDest})
             })
         } catch (e: any) {
             const msg = 'WILL NOT write logs to rotating file due to an error while trying to access the specified logging directory';
@@ -435,17 +470,19 @@ export const getPinoLogger = (config: LogConfig = {}, name = 'App'): LabelledLog
         }
     }
 
-    const transportObj = pino.transport({targets});
-
     const plogger = pino({
-        //transport: {targets},
         // @ts-ignore
         mixin: (obj, num, loggerThis) => {
             return {
                 labels: loggerThis.labels ?? []
             }
-        }
-    }, transportObj) as LabelledLogger;
+        },
+        level: 'debug',
+        customLevels: {
+            verbose: 25
+        },
+        useOnlyCustomLevels: false,
+    }, pino.multistream(streams)) as LabelledLogger;
 
     plogger.addLabel = function (value) {
         if(this.labels === undefined) {
@@ -469,25 +506,3 @@ export const createChildLogger = (parent: LabelledLogger, labelsVal: any | any[]
     }
     return newChild
 }
-
-/*export async function transport(opts) {
-    // SonicBoom is necessary to avoid loops with the main thread.
-    // It is the same of pino.destination().
-    const destination = new sbDef.SonicBoom({ dest: opts.destination || 1, sync: true })
-    await once(destination, 'ready')
-
-    return build(async function (source) {
-        for await (let obj of source) {
-            const toDrain = !destination.write(obj.msg.toUpperCase() + '\n')
-            // This block will handle backpressure
-            if (toDrain) {
-                await once(destination, 'drain')
-            }
-        }
-    }, {
-        async close (err) {
-            destination.end()
-            await once(destination, 'close')
-        }
-    })
-}*/

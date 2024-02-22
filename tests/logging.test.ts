@@ -2,31 +2,36 @@ import {it} from "mocha";
 import chai, {assert} from 'chai';
 import {createChildLogger, getPinoLogger} from "../src/common/logging.js";
 import {sleep} from "../src/utils/index.js";
+import {ErrorWithCause} from "pony-cause";
 
-/**
- * Can't use this yet because Pino does not support mixed sync/async logging
- *
- * IE synchronous to console AND async to file
- *
- * It also does not support multi transport sync -- only async
- * https://github.com/pinojs/pino/issues/1260
- * https://github.com/pinojs/pino/issues/1532
- * */
+
 it('Outputs pino logs as I expect', async function() {
-    const logger = getPinoLogger();
-    logger.info('This has no labels');
+    const logger = await getPinoLogger();
+    logger.info({random: true}, 'This has no labels');
 
     const child = createChildLogger(logger, 'child1');
-    child.info('Has child1 label');
+    child.debug('Has child1 label');
+
+    logger.error({err: new Error('an actual error')}, 'A regular message with a keyed error object');
+    logger.error(new Error('an actual error'), 'A regular message with meta as error object');
+
+    const rootError = new Error('This is the root error');
+    const causeError = new ErrorWithCause('This is an error with another cause', {cause: rootError});
+    const topError = new ErrorWithCause('This is an error with a cause', {cause: causeError});
+    child.error(topError);
+
+    child.error(topError, 'Causaul error with additional message');
+
 
     logger.addLabel('parentLabel');
-    logger.info('Has parentLabel');
+    logger.verbose('Has parentLabel');
 
-    child.info('Does not have parentLabel');
+    child.warn('Does not have parentLabel');
 
     const deeperChild = createChildLogger(child, ['child2','deep']);
     deeperChild.info('Has child1 child2 and deep');
-    child.info('Only has child1');
+    deeperChild.error(new Error('Just a plain error'));
+    child.error('Only has child1');
     logger.info('Only has parentLabel');
 
     child.addLabel('childShallow');
