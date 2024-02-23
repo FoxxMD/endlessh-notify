@@ -1,7 +1,17 @@
-import {LogLevel} from "./Atomic.js";
-import {Logger, LoggerExtras} from 'pino';
+import {Level, Logger, StreamEntry} from 'pino';
 
-export interface LoggingOptions {
+export type AdditionalLevels = "verbose" | "log";
+export type AllLevels = Level | AdditionalLevels;
+export type LogLevel = AllLevels;
+export const logLevels: LogLevel[] = ['fatal', 'error', 'warn', 'info', 'verbose', 'debug'];
+
+export interface LogConfig {
+    level?: string
+    file?: string | false
+    console?: string
+}
+
+export interface LogOptions {
     /**
      *  Specify the minimum log level for all log outputs without their own level specified.
      *
@@ -15,20 +25,23 @@ export interface LoggingOptions {
      * */
     file?: LogLevel | false
     /**
-     * Specify the minimum log level streamed to the UI
-     * */
-    stream?: LogLevel
-    /**
      * Specify the minimum log level streamed to the console (or docker container)
      * */
     console?: LogLevel
-
-    db?: boolean
-
-    discord?: LogLevel
 }
 
-export type LabelledLogger = Logger<"verbose" | "log"> & {
+export const asLogOptions = (obj: LogConfig = {}): obj is LogOptions => {
+    return Object.entries(obj).every(([key, val]) => {
+        if (key !== 'file') {
+            return val === undefined || logLevels.includes(val.toLocaleLowerCase());
+        }
+        return val === undefined || val === false || logLevels.includes(val.toLocaleLowerCase());
+    });
+}
+
+export type LabelledLogger = Logger<AllLevels> & {
     labels?: any[]
     addLabel: (value: any) => void
 }
+
+export type AllLevelStreamEntry = StreamEntry<AllLevels>

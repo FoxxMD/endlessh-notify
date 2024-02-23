@@ -1,5 +1,5 @@
 import YamlConfigDocument from "../config/YamlConfigDocument.js";
-import {LoggingOptions} from "./Logging.js";
+import {LogOptions} from "./Logging.js";
 import {WebhookConfig} from "./webhooks.js";
 
 export class YamlOperatorConfigDocument extends YamlConfigDocument<OperatorConfig> {
@@ -20,7 +20,7 @@ export interface OperatorConfig extends OperatorJsonConfig {
 
 
 export interface OperatorJsonConfig {
-    logging?: LoggingOptions,
+    logging?: LogOptions,
     notifiers: WebhookConfig[]
     endlessDir?: string
     mapquestKey?: string

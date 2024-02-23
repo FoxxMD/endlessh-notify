@@ -13,11 +13,11 @@ import merge from 'deepmerge';
 import {Schema} from 'ajv';
 import * as AjvNS from 'ajv';
 import Ajv from 'ajv';
-import {LogLevel} from "../infrastructure/Atomic.js";
 import {overwriteMerge} from "../../utils/index.js";
-import {AppLogger, getPinoLogger, initPinoLogger} from "../logging.js";
+import {AppLogger, initPinoLogger} from "../logging.js";
 import {DiscordConfig, GotifyConfig, NtfyConfig, WebhookConfig} from "../infrastructure/webhooks.js";
 import path from "path";
+import {LogLevel} from "../infrastructure/Logging.js";
 
 export const createAjvFactory = (logger: AppLogger): AjvNS.default => {
     const validator =  new Ajv.default({logger: logger, verbose: true, strict: "log", allowUnionTypes: true});

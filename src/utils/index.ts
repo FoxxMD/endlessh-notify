@@ -19,7 +19,6 @@ import {Duration} from "dayjs/plugin/duration.js";
 import {ErrorWithCause, getErrorCause} from "pony-cause";
 import InvalidRegexError from "../common/errors/InvalidRegexError.js";
 import {Address4, Address6} from "ip-address";
-import {format} from "logform";
 
 export const overwriteMerge = (destinationArray: any[], sourceArray: any[], options: any): any[] => sourceArray;
 

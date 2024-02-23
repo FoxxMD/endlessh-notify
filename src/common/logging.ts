@@ -1,15 +1,20 @@
 import path from "path";
 import {configDir} from "./index.js";
-import {asLogOptions, LogConfig, LogLevel, LogOptions} from "./infrastructure/Atomic.js";
 import process from "process";
 import {ErrorWithCause} from "pony-cause";
 import dayjs from "dayjs";
 import {fileOrDirectoryIsWriteable} from "../utils/io.js";
-import {LabelledLogger} from "./infrastructure/Logging.js";
+import {
+    AllLevelStreamEntry,
+    asLogOptions,
+    LabelledLogger,
+    LogConfig,
+    LogLevel,
+    LogOptions
+} from "./infrastructure/Logging.js";
 import {
     pino,
-    TransportTargetOptions,
-    Level, StreamEntry,
+    LevelWithSilentOrString,
 } from 'pino';
 import pRoll from 'pino-roll';
 import prettyDef, {PrettyOptions, PinoPretty, colorizerFactory} from 'pino-pretty';
@@ -24,8 +29,6 @@ if (typeof process.env.CONFIG_DIR === 'string') {
 export type AppLogger = LabelledLogger
 
 const CWD = process.cwd();
-export const pinoLoggers: Map<string, LabelledLogger> = new Map();
-
 const prettyOptsFactory = (opts: PrettyOptions = {}) => {
     const {colorize} = opts;
     const colorizeOpts: undefined | {useColor: boolean} = colorize === undefined ? undefined : {useColor: colorize};
@@ -76,7 +79,8 @@ const buildParsedLogOptions = (config: LogConfig = {}): Required<LogOptions> => 
     }
 
     const {level: configLevel} = config;
-    const defaultLevel = process.env.LOG_LEVEL || 'info';
+    const envLevel = process.env.LOG_LEVEL as LogLevel | undefined;
+    const defaultLevel = envLevel ?? 'info';
     const {
         level = configLevel || defaultLevel,
         file = configLevel || defaultLevel,
@@ -84,70 +88,13 @@ const buildParsedLogOptions = (config: LogConfig = {}): Required<LogOptions> => 
     } = config;
 
     return {
-        level: level as LogLevel,
+        level,
         file: file as LogLevel | false,
         console
     };
 }
 
-export const getPinoLogger = async (config: LogConfig = {}, name = 'App'): Promise<LabelledLogger> => {
-
-    if(pinoLoggers.has(name)) {
-        return pinoLoggers.get(name);
-    }
-
-    const errors: (Error | string)[] = [];
-
-    let options: LogOptions = {};
-    if (asLogOptions(config)) {
-        options = config;
-    } else {
-        errors.push(`Logging levels were not valid. Must be one of: 'error', 'warn', 'info', 'verbose', 'debug', 'silent' -- 'file' may be false.`);
-    }
-
-    const {level: configLevel} = options;
-    const defaultLevel = process.env.LOG_LEVEL || 'info';
-    const {
-        level = configLevel || defaultLevel,
-        file = configLevel || defaultLevel,
-        console = configLevel || 'debug'
-    } = options;
-
-    const streams: StreamEntry[] = [
-        {
-            level: configLevel as Level,
-            stream: prettyDef.default({...prettyConsole, destination: 1, sync: true})
-        }
-    ]
-
-    if(file !== false) {
-        try {
-            fileOrDirectoryIsWriteable(logPath);
-            const rollingDest = await pRoll({
-                file: path.resolve(logPath, 'app'),
-                size: 10,
-                frequency: 'daily',
-                get extension() {return `-${dayjs().format('YYYY-MM-DD')}.log`},// '.log',
-                mkdir: true,
-                sync: false,
-            });
-
-            streams.push({
-                level: file as Level,
-                stream: prettyDef.default({...prettyFile, destination: rollingDest})
-            })
-        } catch (e: any) {
-            const msg = 'WILL NOT write logs to rotating file due to an error while trying to access the specified logging directory';
-            errors.push(new ErrorWithCause<Error>(msg, {cause: e as Error}));
-        }
-    }
-
-    const plogger = buildPinoLogger(level as Level, streams);
-    pinoLoggers.set(name, plogger);
-    return plogger;
-}
-
-const buildPinoFileStream = async (options: Required<LogOptions>): Promise<StreamEntry | undefined> => {
+const buildPinoFileStream = async (options: Required<LogOptions>): Promise<AllLevelStreamEntry | undefined> => {
     const {file} = options;
     if(file === false) {
         return undefined;
@@ -159,13 +106,13 @@ const buildPinoFileStream = async (options: Required<LogOptions>): Promise<Strea
             file: path.resolve(logPath, 'app'),
             size: 10,
             frequency: 'daily',
-            get extension() {return `-${dayjs().format('YYYY-MM-DD')}.log`},// '.log',
+            get extension() {return `-${dayjs().format('YYYY-MM-DD')}.log`},
             mkdir: true,
             sync: false,
         });
 
         return {
-            level: file as Level,
+            level: file as LogLevel,
             stream: prettyDef.default({...prettyFile, destination: rollingDest})
         };
     } catch (e: any) {
@@ -173,14 +120,14 @@ const buildPinoFileStream = async (options: Required<LogOptions>): Promise<Strea
     }
 }
 
-const buildPinoConsoleStream = (options: Required<LogOptions>): StreamEntry => {
+const buildPinoConsoleStream = (options: Required<LogOptions>): AllLevelStreamEntry => {
     return {
-        level: options.console as Level,
+        level: options.console as LogLevel,
         stream: prettyDef.default({...prettyConsole, destination: 1, sync: true})
     }
 }
 
-const buildPinoLogger = (defaultLevel: Level, streams: StreamEntry[]): LabelledLogger => {
+const buildPinoLogger = (defaultLevel: LevelWithSilentOrString, streams: AllLevelStreamEntry[]): LabelledLogger => {
     const plogger = pino({
         // @ts-ignore
         mixin: (obj, num, loggerThis) => {
@@ -205,15 +152,15 @@ const buildPinoLogger = (defaultLevel: Level, streams: StreamEntry[]): LabelledL
     return plogger;
 }
 
-export const testPinoLogger = buildPinoLogger(('silent' as Level), [buildPinoConsoleStream(buildParsedLogOptions({level: 'silent'}))]);
+export const testPinoLogger = buildPinoLogger('silent', [buildPinoConsoleStream(buildParsedLogOptions({level: 'debug'}))]);
 
-export const initPinoLogger = buildPinoLogger(('debug' as Level), [buildPinoConsoleStream(buildParsedLogOptions({level: 'debug'}))]);
+export const initPinoLogger = buildPinoLogger('debug', [buildPinoConsoleStream(buildParsedLogOptions({level: 'debug'}))]);
 
 export const appPinoLogger = async (config: LogConfig = {}, name = 'App') => {
     const options = buildParsedLogOptions(config);
     const stream = buildPinoConsoleStream(options);
     const file = await buildPinoFileStream(options);
-    return buildPinoLogger('debug' as Level, [stream, file]);
+    return buildPinoLogger('debug' as LevelWithSilentOrString, [stream, file]);
 }
 
 export const createChildPinoLogger = (parent: LabelledLogger, labelsVal: any | any[] = [], context: object = {}, options = {}) => {
