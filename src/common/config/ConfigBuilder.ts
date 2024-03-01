@@ -170,12 +170,19 @@ export const parseConfigFromEnv = (): OperatorJsonConfig => {
         notifiers.push(gHook);
     }
 
-    return {
-        logging: {
-            level: process.env.LOG_LEVEL as (LogLevel | undefined)
-        },
+    const config: OperatorJsonConfig = {
         endlessDir: process.env.ENDLESS_DIR,
         mapquestKey: process.env.MAPQUEST_KEY,
         notifiers
     }
+
+    const level = process.env.LOG_LEVEL as (LogLevel | undefined);
+
+    if(level !== undefined) {
+        config.logging = {
+            level
+        }
+    }
+
+    return config;
 }

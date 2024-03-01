@@ -1,7 +1,8 @@
 import {LRUCache} from "lru-cache";
 import {ErrorWithCause} from "pony-cause";
 import got from 'got';
-import {AppLogger, createChildLogger} from "./common/logging.js";
+import {AppLogger} from "./common/logging.js";
+import { childLogger } from "@foxxmd/logging";
 
 export class MapImageService {
 
@@ -10,7 +11,7 @@ export class MapImageService {
     logger: AppLogger;
 
     constructor(logger: AppLogger, mapquestKey?: string) {
-        this.logger = createChildLogger(logger, 'Map Image'); // logger.child({labels: ['Map Image']}, mergeArr);
+        this.logger = childLogger(logger, 'Map Image'); // logger.child({labels: ['Map Image']}, mergeArr);
         this.mapquestKey = mapquestKey;
         if (this.mapquestKey !== undefined) {
             this.logger.info('Mapquest Key found. Will generate map images for Discord notifiers.');

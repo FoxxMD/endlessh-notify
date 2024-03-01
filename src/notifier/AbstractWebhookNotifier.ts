@@ -11,7 +11,8 @@ import {ErrorWithCause} from "pony-cause";
 import TTLCache from '@isaacs/ttlcache';
 import dayjs, {Dayjs} from "dayjs";
 import {EndlessCloseLogLine} from "../common/infrastructure/Atomic.js";
-import {AppLogger, createChildLogger} from "../common/logging.js";
+import {AppLogger} from "../common/logging.js";
+import { childLogger } from "@foxxmd/logging";
 
 interface HydratedEventTypeCommon extends Omit<EventTypeCommon, 'debounceInterval'> {
     debounceInterval: Duration
@@ -47,7 +48,7 @@ export abstract class AbstractWebhookNotifier {
     protected constructor(notifierType: string, defaultName: string, config: WebhookConfig, logger: AppLogger) {
         this.config = config;
         const label = `${notifierType} - ${config.name ?? defaultName}`
-        this.logger = createChildLogger(logger, label); //logger.child({labels: [label]}, mergeArr);
+        this.logger = childLogger(logger, label); //logger.child({labels: [label]}, mergeArr);
         try {
             this.ttlStr = config.debounceInterval ?? '1 day';
             this.ttl = parseDuration(this.ttlStr);
@@ -106,7 +107,7 @@ export abstract class AbstractWebhookNotifier {
                 minTotalConnections,
                 maxTotalConnections,
                 cache: new TTLCache<string, Dayjs>({ max: 500, ttl: dur.asMilliseconds()}),
-                logger: createChildLogger(this.logger, eventName) //this.logger.child({labels: [eventName]}, mergeArr)
+                logger: childLogger(this.logger, eventName) //this.logger.child({labels: [eventName]}, mergeArr)
             }
             if(eventType === 'accept') {
                 const hAcceptEvent: HydratedEventTypeAccept = {

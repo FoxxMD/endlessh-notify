@@ -3,14 +3,15 @@ import {IPDataFields} from "./common/infrastructure/Atomic.js";
 import {Address4, Address6} from "ip-address";
 import {defaultApiApiQuery, getIpGeolocation, IPDataResponse} from "./ipApi.js";
 import {ErrorWithCause} from "pony-cause";
-import {AppLogger, createChildLogger} from "./common/logging.js";
+import {AppLogger} from "./common/logging.js";
+import { childLogger } from "@foxxmd/logging";
 
 export class GeoLookup {
     cache: LRUCache<string, IPDataFields> = new LRUCache({max: 500})
     logger: AppLogger
 
     constructor(logger: AppLogger) {
-        this.logger = createChildLogger(logger, 'Geo Lookup'); // logger.child({labels: ['Geo Lookup']}, mergeArr)
+        this.logger = childLogger(logger, 'Geo Lookup'); // logger.child({labels: ['Geo Lookup']}, mergeArr)
 
     }
 

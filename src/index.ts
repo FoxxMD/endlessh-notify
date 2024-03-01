@@ -16,6 +16,8 @@ import {GeoQueue} from "./GeoQueue.js";
 import {LRUCache} from "lru-cache";
 import {EndlessLogStats, EndlessStatLog} from "./common/infrastructure/Atomic.js";
 import {endlessLogLineToFriendly} from "./utils/index.js";
+import {Logger, loggerApp} from '@foxxmd/logging';
+
 
 dayjs.extend(utc)
 dayjs.extend(isBetween);
@@ -25,7 +27,7 @@ dayjs.extend(timezone);
 
 const initLogger = initPinoLogger; // getLogger({file: false}, 'init');
 
-let logger: AppLogger;
+let logger: Logger;
 
 process.on('uncaughtExceptionMonitor', (err, origin) => {
     const appError = new ErrorWithCause(`Uncaught exception is crashing the app! :( Type: ${origin}`, {cause: err});
@@ -48,7 +50,7 @@ const configDir = process.env.CONFIG_DIR || path.resolve(projectDir, `./config`)
             logging = {},
         } = config;
 
-        logger = await appPinoLogger(logging);
+        logger = loggerApp(logging);
 
         const statsCache = new LRUCache<string, EndlessLogStats>({max: 1000});
 

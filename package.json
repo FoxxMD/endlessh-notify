@@ -27,6 +27,8 @@
   },
   "homepage": "https://github.com/FoxxMD/endlessh-notifications#readme",
   "dependencies": {
+    "@foxxmd/logging": "file:../foxxmd/logging",
+    "@foxxmd/string-sameness": "file:../string-sameness",
     "@isaacs/ttlcache": "^1.4.1",
     "@logdna/tail-file": "^3.0.1",
     "ajv": "^8.12.0",

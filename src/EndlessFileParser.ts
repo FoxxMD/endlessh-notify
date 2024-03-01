@@ -6,7 +6,8 @@ import {parseEndlessLogLine} from "./utils/index.js";
 import path from "path";
 import {EndlessLogLine} from "./common/infrastructure/Atomic.js";
 import {TypedEventEmitter} from "./utils/TypedEventEmitter.js";
-import {AppLogger, createChildLogger} from "./common/logging.js";
+import {AppLogger} from "./common/logging.js";
+import { childLogger } from "@foxxmd/logging";
 
 const endlessFileNames = ['current', 'endlessh.INFO'];
 
@@ -23,7 +24,7 @@ export class EndlessFileParser extends TypedEventEmitter<EndlessFileEventTypes> 
     constructor(file: TailFile, logger: AppLogger) {
         super();
         this.tailFile = file;
-        this.logger = createChildLogger(logger, 'Parser'); //logger.child({labels: ['Parser']}, mergeArr);
+        this.logger = childLogger(logger, 'Parser'); //logger.child({labels: ['Parser']}, mergeArr);
     }
 
     public async start() {
@@ -72,19 +73,19 @@ export class EndlessFileParser extends TypedEventEmitter<EndlessFileEventTypes> 
     }
 
     public static async fromFile(dir: string, logger: AppLogger) {
-        const childLogger = createChildLogger(logger, 'Parser'); // logger.child({labels: ['Parser']}, mergeArr);
+        const cl = childLogger(logger, 'Parser'); // logger.child({labels: ['Parser']}, mergeArr);
         for(const name of endlessFileNames) {
             const filePath = path.resolve(dir, `./${name}`);
-            childLogger.info(`Attempting to open log file => ${filePath}`);
+            cl.info(`Attempting to open log file => ${filePath}`);
             try {
                 await fileIsReadable(filePath);
-                childLogger.info('Found a readable file!');
+                cl.info('Found a readable file!');
                 return new EndlessFileParser(new TailFile(filePath), logger);
             } catch (e) {
                 if(e.message.includes('No file found')) {
-                    childLogger.warn(`No file found`);
+                    cl.warn(`No file found`);
                 } else {
-                    childLogger.warn(new ErrorWithCause(`Could not open log file`, {cause: e}))
+                    cl.warn(new ErrorWithCause(`Could not open log file`, {cause: e}))
                 }
             }
         }

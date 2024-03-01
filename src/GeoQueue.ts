@@ -9,7 +9,8 @@ import {TypedEventEmitter} from "./utils/TypedEventEmitter.js";
 import {sleep} from "./utils/index.js";
 import {queue, QueueObject} from 'async';
 import {GeoLookup} from "./GeoLookup.js";
-import {AppLogger, createChildLogger} from "./common/logging.js";
+import {AppLogger} from "./common/logging.js";
+import { childLogger } from "@foxxmd/logging";
 
 type GeoHydratedLogLineEvents = {
     'log': [log: EndlessLog]
@@ -27,7 +28,7 @@ export class GeoQueue extends TypedEventEmitter<GeoHydratedLogLineEvents> {
 
     constructor(logger: AppLogger) {
         super();
-        this.logger = createChildLogger(logger, 'Geo Queue');// logger.child({labels: ['Geo Queue']}, mergeArr);
+        this.logger = childLogger(logger, 'Geo Queue');// logger.child({labels: ['Geo Queue']}, mergeArr);
         this.lookup = new GeoLookup(this.logger);
         this.queue = this.generateQueue();
         this.queue.error((err, task) => {
