@@ -1,9 +1,9 @@
-import { AbstractWebhookNotifier } from "./AbstractWebhookNotifier.js";
+import {AbstractWebhookNotifier} from "./AbstractWebhookNotifier.js";
 import {Config, publish} from 'ntfy';
 import got from 'got';
 import {NtfyConfig, PrioritiesConfig, WebhookPayload} from "../common/infrastructure/webhooks.js";
 import {durationToHuman} from "../utils/index.js";
-import {AppLogger} from "../common/logging.js";
+import {Logger} from "@foxxmd/logging";
 
 export class NtfyWebhookNotifier extends AbstractWebhookNotifier {
 
@@ -11,7 +11,7 @@ export class NtfyWebhookNotifier extends AbstractWebhookNotifier {
 
     priorities: PrioritiesConfig;
 
-    constructor(defaultName: string, config: NtfyConfig, logger: AppLogger) {
+    constructor(defaultName: string, config: NtfyConfig, logger: Logger) {
         super('Ntfy', defaultName, config, logger);
         const {
             info = 3,

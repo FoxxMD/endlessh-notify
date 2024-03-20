@@ -2,7 +2,7 @@ import {AbstractWebhookNotifier} from "./AbstractWebhookNotifier.js";
 import {GotifyWebhookNotifier} from "./GotifyWebhookNotifier.js";
 import {NtfyWebhookNotifier} from "./NtfyWebhookNotifier.js";
 import {EventEmitter} from "events";
-import {mergeArr, sleep} from "../utils/index.js";
+import {sleep} from "../utils/index.js";
 import {
     DiscordConfig,
     GotifyConfig,
@@ -14,8 +14,7 @@ import {DiscordWebhookNotifier} from "./DiscordWebhookNotifier.js";
 import {queue, QueueObject} from 'async';
 import {EndlessLog} from "../common/infrastructure/Atomic.js";
 import {MapImageService} from "../MapImageService.js";
-import {AppLogger} from "../common/logging.js";
-import { childLogger } from "@foxxmd/logging";
+import {childLogger, Logger} from "@foxxmd/logging";
 
 interface NotifyTask {
     log: EndlessLog
@@ -23,7 +22,7 @@ interface NotifyTask {
 
 export class Notifiers {
 
-    logger: AppLogger;
+    logger: Logger;
 
     webhooks: AbstractWebhookNotifier[] = [];
 
@@ -33,7 +32,7 @@ export class Notifiers {
 
     queue: QueueObject<NotifyTask>;
 
-    constructor(logger: AppLogger, mapquestKey?: string) {
+    constructor(logger: Logger, mapquestKey?: string) {
 
         this.logger = childLogger(logger, 'Notifiers'); // logger.child({labels: ['Notifiers']}, mergeArr);
         this.queue = this.generateQueue();

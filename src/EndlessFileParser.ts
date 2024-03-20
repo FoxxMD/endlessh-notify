@@ -6,8 +6,7 @@ import {parseEndlessLogLine} from "./utils/index.js";
 import path from "path";
 import {EndlessLogLine} from "./common/infrastructure/Atomic.js";
 import {TypedEventEmitter} from "./utils/TypedEventEmitter.js";
-import {AppLogger} from "./common/logging.js";
-import { childLogger } from "@foxxmd/logging";
+import {childLogger, Logger} from "@foxxmd/logging";
 
 const endlessFileNames = ['current', 'endlessh.INFO'];
 
@@ -19,9 +18,9 @@ type EndlessFileEventTypes = {
 export class EndlessFileParser extends TypedEventEmitter<EndlessFileEventTypes> {
 
     tailFile: TailFile;
-    logger: AppLogger;
+    logger: Logger;
 
-    constructor(file: TailFile, logger: AppLogger) {
+    constructor(file: TailFile, logger: Logger) {
         super();
         this.tailFile = file;
         this.logger = childLogger(logger, 'Parser'); //logger.child({labels: ['Parser']}, mergeArr);
@@ -72,7 +71,7 @@ export class EndlessFileParser extends TypedEventEmitter<EndlessFileEventTypes> 
         }
     }
 
-    public static async fromFile(dir: string, logger: AppLogger) {
+    public static async fromFile(dir: string, logger: Logger) {
         const cl = childLogger(logger, 'Parser'); // logger.child({labels: ['Parser']}, mergeArr);
         for(const name of endlessFileNames) {
             const filePath = path.resolve(dir, `./${name}`);

@@ -11,13 +11,12 @@ import {ErrorWithCause} from "pony-cause";
 import TTLCache from '@isaacs/ttlcache';
 import dayjs, {Dayjs} from "dayjs";
 import {EndlessCloseLogLine} from "../common/infrastructure/Atomic.js";
-import {AppLogger} from "../common/logging.js";
-import { childLogger } from "@foxxmd/logging";
+import {childLogger, Logger} from "@foxxmd/logging";
 
 interface HydratedEventTypeCommon extends Omit<EventTypeCommon, 'debounceInterval'> {
     debounceInterval: Duration
     cache: TTLCache<string, Dayjs>
-    logger: AppLogger
+    logger: Logger
 }
 
 type HydratedEventTypeAccept = Omit<EventTypeAccept, 'debounceInterval'> & HydratedEventTypeCommon
@@ -32,7 +31,7 @@ type HydratedEventTypeClose = HydratedEventTypeCommon & Omit<EventTypeClose, 'de
 export abstract class AbstractWebhookNotifier {
 
     config: WebhookConfig
-    logger: AppLogger;
+    logger: Logger;
 
     initialized: boolean = false;
     requiresAuth: boolean = false;
@@ -45,7 +44,7 @@ export abstract class AbstractWebhookNotifier {
     acceptEvents: HydratedEventTypeAccept[] = [];
     closeEvents: HydratedEventTypeClose[] = [];
 
-    protected constructor(notifierType: string, defaultName: string, config: WebhookConfig, logger: AppLogger) {
+    protected constructor(notifierType: string, defaultName: string, config: WebhookConfig, logger: Logger) {
         this.config = config;
         const label = `${notifierType} - ${config.name ?? defaultName}`
         this.logger = childLogger(logger, label); //logger.child({labels: [label]}, mergeArr);

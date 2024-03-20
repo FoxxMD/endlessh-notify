@@ -1,11 +1,11 @@
 import {AbstractWebhookNotifier} from "./AbstractWebhookNotifier.js";
-import {APIEmbed, AttachmentBuilder, BaseMessageOptions, EmbedBuilder, WebhookClient, time} from "discord.js";
+import {APIEmbed, AttachmentBuilder, time, WebhookClient} from "discord.js";
 import {DiscordConfig, WebhookPayload} from "../common/infrastructure/webhooks.js";
 import {ErrorWithCause} from "pony-cause";
 import dayjs from "dayjs";
-import {doubleReturnNewline, durationToHuman, plainTag} from "../utils/index.js";
+import {doubleReturnNewline, durationToHuman} from "../utils/index.js";
 import {MapImageService} from "../MapImageService.js";
-import {AppLogger} from "../common/logging.js";
+import {Logger} from "@foxxmd/logging";
 
 export class DiscordWebhookNotifier extends AbstractWebhookNotifier {
 
@@ -13,7 +13,7 @@ export class DiscordWebhookNotifier extends AbstractWebhookNotifier {
     imageService: MapImageService;
     client: WebhookClient;
 
-    constructor(defaultName: string, config: DiscordConfig, imageService: MapImageService, logger: AppLogger) {
+    constructor(defaultName: string, config: DiscordConfig, imageService: MapImageService, logger: Logger) {
         super('Discord', defaultName, config, logger);
         this.requiresAuth = false;
         this.client = new WebhookClient({url: config.webhook})

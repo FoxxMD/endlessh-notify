@@ -1,16 +1,15 @@
 import {LRUCache} from "lru-cache";
 import {ErrorWithCause} from "pony-cause";
 import got from 'got';
-import {AppLogger} from "./common/logging.js";
-import { childLogger } from "@foxxmd/logging";
+import {childLogger, Logger} from "@foxxmd/logging";
 
 export class MapImageService {
 
     mapquestKey?: string;
     imageCache: LRUCache<string, Buffer> = new LRUCache({max: 100});
-    logger: AppLogger;
+    logger: Logger;
 
-    constructor(logger: AppLogger, mapquestKey?: string) {
+    constructor(logger: Logger, mapquestKey?: string) {
         this.logger = childLogger(logger, 'Map Image'); // logger.child({labels: ['Map Image']}, mergeArr);
         this.mapquestKey = mapquestKey;
         if (this.mapquestKey !== undefined) {
