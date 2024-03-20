@@ -14,19 +14,18 @@ import {Schema} from 'ajv';
 import * as AjvNS from 'ajv';
 import Ajv from 'ajv';
 import {overwriteMerge} from "../../utils/index.js";
-import {AppLogger, initPinoLogger} from "../logging.js";
 import {DiscordConfig, GotifyConfig, NtfyConfig, WebhookConfig} from "../infrastructure/webhooks.js";
 import path from "path";
-import {LogLevel} from "../infrastructure/Logging.js";
+import {Logger, loggerDebug, LogLevel} from '@foxxmd/logging';
 
-export const createAjvFactory = (logger: AppLogger): AjvNS.default => {
+export const createAjvFactory = (logger: Logger): AjvNS.default => {
     const validator =  new Ajv.default({logger: logger, verbose: true, strict: "log", allowUnionTypes: true});
     // https://ajv.js.org/strict-mode.html#unknown-keywords
     validator.addKeyword('deprecationMessage');
     return validator;
 }
 
-export const validateJson = <T>(config: object, schema: Schema, logger: AppLogger): T => {
+export const validateJson = <T>(config: object, schema: Schema, logger: Logger): T => {
     const ajv = createAjvFactory(logger);
     const valid = ajv.validate(schema, config);
     if (valid) {
@@ -79,7 +78,7 @@ export const validateJson = <T>(config: object, schema: Schema, logger: AppLogge
 
 export const parseConfigFromSources = async (operatorDir: string) => {
 
-    const initLogger = initPinoLogger;
+    const initLogger = loggerDebug;
 
     let configDoc: YamlOperatorConfigDocument
     

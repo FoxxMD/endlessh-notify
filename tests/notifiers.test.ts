@@ -8,15 +8,15 @@ import {Address4} from "ip-address";
 import {sleep} from "../src/utils/index.js";
 import {DiscordWebhookNotifier} from "../src/notifier/DiscordWebhookNotifier.js";
 import {MapImageService} from "../src/MapImageService.js";
-import {AppLogger, testPinoLogger} from "../src/common/logging.js";
+import {Logger, loggerTest} from "@foxxmd/logging";
 
-const logger = testPinoLogger;
+const logger = loggerTest;
 
 const should = chai.should();
 
 class TestNotifier extends AbstractWebhookNotifier {
 
-    constructor(type: string, defaultName: string, config: WebhookConfig, logger: AppLogger) {
+    constructor(type: string, defaultName: string, config: WebhookConfig, logger: Logger) {
         super(type, defaultName, config, logger);
         this.initialized = true;
     }

@@ -6,7 +6,6 @@ import duration from 'dayjs/plugin/duration.js';
 import timezone from 'dayjs/plugin/timezone.js';
 import path from "path";
 import {projectDir} from "./common/index.js";
-import {AppLogger, appPinoLogger, initPinoLogger} from "./common/logging.js";
 import {ErrorWithCause} from "pony-cause";
 import {parseConfigFromSources} from "./common/config/ConfigBuilder.js";
 import {Notifiers} from "./notifier/Notifiers.js";
@@ -16,7 +15,8 @@ import {GeoQueue} from "./GeoQueue.js";
 import {LRUCache} from "lru-cache";
 import {EndlessLogStats, EndlessStatLog} from "./common/infrastructure/Atomic.js";
 import {endlessLogLineToFriendly} from "./utils/index.js";
-import {Logger, loggerApp} from '@foxxmd/logging';
+import {Logger, loggerAppRolling, loggerDebug} from '@foxxmd/logging';
+import process from "process";
 
 
 dayjs.extend(utc)
@@ -25,7 +25,7 @@ dayjs.extend(relativeTime);
 dayjs.extend(duration);
 dayjs.extend(timezone);
 
-const initLogger = initPinoLogger; // getLogger({file: false}, 'init');
+const initLogger = loggerDebug;
 
 let logger: Logger;
 
@@ -50,7 +50,7 @@ const configDir = process.env.CONFIG_DIR || path.resolve(projectDir, `./config`)
             logging = {},
         } = config;
 
-        logger = loggerApp(logging);
+        logger = await loggerAppRolling(logging, {logBaseDir: configDir});
 
         const statsCache = new LRUCache<string, EndlessLogStats>({max: 1000});
 

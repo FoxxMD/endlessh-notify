@@ -1,5 +1,5 @@
+import { LogOptions } from "@foxxmd/logging";
 import YamlConfigDocument from "../config/YamlConfigDocument.js";
-import {LogOptions} from "./Logging.js";
 import {WebhookConfig} from "./webhooks.js";
 
 export class YamlOperatorConfigDocument extends YamlConfigDocument<OperatorConfig> {

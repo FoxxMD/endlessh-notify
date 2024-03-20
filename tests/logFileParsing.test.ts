@@ -10,13 +10,13 @@ import {sleep} from "../src/utils/index.js";
 import {pEvent} from 'p-event';
 import * as fs from 'fs';
 import withLocalTmpDir from 'with-local-tmp-dir';
-import {testPinoLogger} from "../src/common/logging.js";
+import {loggerTest} from "@foxxmd/logging";
 
 chai.use(asPromised);
 chai.use(sChai);
 const should = chai.should();
 
-const logger = testPinoLogger; // loggers.get('noop');
+const logger = loggerTest;
 
 const endlessFlavors = [{name: 'endlessh', util: endlessh}, {name: 'endless-go', util: endlesshGo}];
 const defaultFlavor = endlessFlavors[0];
