@@ -32,6 +32,7 @@ FROM base as app
 COPY --chown=abc:abc . /app
 
 ENV NODE_ENV="production"
+ENV COLORED_STD=true
 
 RUN npm install --omit=dev \
     && npm cache clean --force \
